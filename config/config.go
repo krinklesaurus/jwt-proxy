@@ -1,0 +1,170 @@
+package config
+
+import (
+	"crypto/x509"
+	"encoding/pem"
+	"fmt"
+	"io/ioutil"
+	"os"
+
+	"github.com/krinklesaurus/jwt_proxy"
+	"github.com/krinklesaurus/jwt_proxy/log"
+	"github.com/krinklesaurus/jwt_proxy/provider"
+	"github.com/spf13/viper"
+)
+
+const configName string = "config"
+const configType string = "yaml"
+
+const configRootUri string = "root_uri"
+const configRedirectUri string = "redirect_uri"
+const configProviders string = "providers"
+const configProviderClientId string = "client_id"
+const configProviderClientSecret string = "client_secret"
+const configProviderScopes string = "scopes"
+
+const configGoogleClientId string = configProviders + ".google." + configProviderClientId
+const configGoogleClientSecret string = configProviders + ".google." + configProviderClientSecret
+const configGoogleScopes string = configProviders + ".google." + configProviderScopes
+
+const configFacebookClientId string = configProviders + ".facebook." + configProviderClientId
+const configFacebookClientSecret string = configProviders + ".facebook." + configProviderClientSecret
+const configFacebookScopes string = configProviders + ".facebook." + configProviderScopes
+
+const configGithubClientId string = configProviders + ".github." + configProviderClientId
+const configGithubClientSecret string = configProviders + ".github." + configProviderClientSecret
+const configGithubScopes string = configProviders + ".github." + configProviderScopes
+
+const configSigningMethod string = "jwt.signingMethod"
+const configPublicKeyPath string = "jwt.public_key"
+const configPrivateKeyPath string = "jwt.private_key"
+const configJwtAudience string = "jwt.audience"
+const configJwtIssuer string = "jwt.issuer"
+const configJwtSubject string = "jwt.subject"
+
+func Initialize(configFile string) (*app.Config, error) {
+	viper.SetConfigType(configType)
+	viper.AutomaticEnv()
+
+	viper.BindEnv(configRootUri, "ROOT_URI")
+	viper.BindEnv(configRedirectUri, "REDIRECT_URI")
+
+	viper.BindEnv(configGoogleClientId, "GOOGLE_CLIENTID")
+	viper.BindEnv(configGoogleClientSecret, "GOOGLE_SECRET")
+	viper.BindEnv(configGoogleScopes, "GOOGLE_SCOPES")
+
+	viper.BindEnv(configFacebookClientId, "FACEBOOK_CLIENTID")
+	viper.BindEnv(configFacebookClientSecret, "FACEBOOK_SECRET")
+	viper.BindEnv(configFacebookScopes, "FACEBOOK_SCOPES")
+
+	viper.BindEnv(configGithubClientId, "GITHUB_CLIENTID")
+	viper.BindEnv(configGithubClientSecret, "GITHUB_SECRET")
+	viper.BindEnv(configGithubScopes, "GITHUB_SCOPES")
+
+	viper.BindEnv(configSigningMethod, "SIGNINGMETHOD")
+	viper.BindEnv(configPublicKeyPath, "PUBLICKEY_PATH")
+	viper.BindEnv(configPrivateKeyPath, "PRIVATEKEY_PATH")
+
+	viper.BindEnv(configJwtAudience, "JWT_AUDIENCE")
+	viper.BindEnv(configJwtIssuer, "JWT_ISSUER")
+	viper.BindEnv(configJwtSubject, "JWT_SUBJECT")
+
+	configReader, err := os.Open(configFile)
+	if err != nil {
+		log.Infof("No config file provided, reading from other sources...")
+	} else {
+		err = viper.ReadConfig(configReader)
+		if err != nil {
+			panic(fmt.Sprintf("Could not read config file at %s", configFile))
+		}
+	}
+
+	rootURI := viper.GetString(configRootUri)
+	if rootURI == "" {
+		panic("No root_uri set!")
+	}
+
+	redirectURI := viper.GetString(configRedirectUri)
+	if redirectURI == "" {
+		panic("No redirect_uri set!")
+	}
+
+	providersConfig := viper.GetStringMap(configProviders)
+
+	providers := map[string]app.Provider{}
+	if providersConfig["google"] != "" {
+		providers["google"] = provider.NewGoogle(
+			rootURI,
+			viper.GetString(configGoogleClientId),
+			viper.GetString(configGoogleClientSecret),
+			viper.GetStringSlice(configGoogleScopes),
+		)
+	}
+
+	if providersConfig["github"] != "" {
+		providers["github"] = provider.NewGithub(
+			rootURI,
+			viper.GetString(configGithubClientId),
+			viper.GetString(configGithubClientSecret),
+			viper.GetStringSlice(configGithubScopes),
+		)
+	}
+
+	if providersConfig["facebook"] != "" {
+		providers["facebook"] = provider.NewFacebook(
+			rootURI,
+			viper.GetString(configFacebookClientId),
+			viper.GetString(configFacebookClientSecret),
+			viper.GetStringSlice(configFacebookScopes),
+		)
+	}
+
+	if len(providers) <= 0 {
+		panic("No providers have been configured!")
+	}
+
+	audience := viper.GetString(configJwtAudience)
+	issuer := viper.GetString(configJwtIssuer)
+	subject := viper.GetString(configJwtSubject)
+
+	signingMethodKey := viper.GetString(configSigningMethod)
+	if signingMethodKey == "" {
+		panic("No signing method set!")
+	}
+	signingMethod := app.SigningMethods[signingMethodKey]
+	if signingMethod == nil {
+		panic("No valid signing method set!")
+	}
+
+	publicKeyPath := viper.GetString(configPublicKeyPath)
+	derBytes, err := ioutil.ReadFile(publicKeyPath)
+	if err != nil {
+		panic(err)
+	}
+	block, _ := pem.Decode(derBytes)
+	rsaPub, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		panic(err)
+	}
+
+	privateKeyPath := viper.GetString(configPrivateKeyPath)
+	der, err := ioutil.ReadFile(privateKeyPath)
+	if err != nil {
+		panic(err)
+	}
+	block2, _ := pem.Decode(der)
+	rsaPriv, err := x509.ParsePKCS1PrivateKey(block2.Bytes)
+	if err != nil {
+		panic(err)
+	}
+
+	return &app.Config{RootURI: rootURI,
+		RedirectURI:   redirectURI,
+		Providers:     providers,
+		SigningMethod: signingMethod,
+		PrivateRSAKey: rsaPriv,
+		PublicRSAKey:  rsaPub,
+		Audience:      audience,
+		Issuer:        issuer,
+		Subject:       subject}, nil
+}
