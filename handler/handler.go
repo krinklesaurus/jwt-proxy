@@ -92,17 +92,47 @@ func (handler *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Sorry, some unknown error occurred", http.StatusInternalServerError)
 		return
 	}
+	localEnabled := handler.core.LocalEnabled()
 	templateData := struct {
 		LocalAuthURL string
 		Providers    []string
+		LocalEnabled bool
 		CSRF         string
 	}{
 		"/auth",
 		supportedProviders,
+		localEnabled,
 		csrf,
 	}
 
 	loginTemplate.Execute(w, templateData)
+}
+
+func (handler *Handler) AuthHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	username := r.Form["username"][0]
+	password := r.Form["password"][0]
+	csrf := r.Form["csrf"][0]
+
+	nonce, err := handler.nonceStore.GetAndRemove(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if csrf != nonce {
+		log.Errorf("csrf nonce not matching %s vs %s", csrf, nonce)
+		http.Error(w, "Sorry, some unknown error occurred", http.StatusInternalServerError)
+		return
+	}
+
+	token, err := handler.core.Auth(username, password)
+	if err != nil {
+		log.Errorf("authentication error %s", err.Error())
+		http.Error(w, "Sorry, some unknown error occurred", http.StatusInternalServerError)
+		return
+	}
+
+	handler.jwtHandler(w, r, token)
 }
 
 func (handler *Handler) ProviderLoginHandler(w http.ResponseWriter, r *http.Request) {

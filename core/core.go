@@ -3,11 +3,13 @@ package core
 import (
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"time"
 
 	"github.com/SermoDigital/jose/jws"
 	"github.com/krinklesaurus/jwt_proxy"
 	"github.com/krinklesaurus/jwt_proxy/log"
+	"github.com/krinklesaurus/jwt_proxy/util"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/oauth2"
 )
@@ -121,4 +123,23 @@ func (c *Core) AuthURL(providerID string, state string) string {
 	provider := c.Config.Providers[providerID]
 	url := provider.AuthCodeURL(state)
 	return url
+}
+
+func (c *Core) Auth(username string, password string) (*app.Token, error) {
+	err := c.userService.LoginUser(username, password)
+	if err != nil {
+		log.Errorf("Failed to login user %s cause of %s", username, err)
+		return nil, errors.New("Wrong credentials")
+	}
+
+	tokenValue := util.RandomString(32)
+	token := &app.Token{Token: oauth2.Token{
+		AccessToken:  tokenValue,
+		TokenType:    "bearer",
+		RefreshToken: "",
+		Expiry:       time.Now(),
+	}, ProviderID: "local"}
+	c.tokenStore[username] = token
+	log.Infof("added to token store %s => %s", username, tokenValue)
+	return token, nil
 }

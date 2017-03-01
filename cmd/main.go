@@ -47,6 +47,8 @@ func main() {
 	r.HandleFunc("/callback/{provider}", handler.CallbackHandler)
 	r.HandleFunc("/pubkey", handler.PublicKeyHandler)
 
+	r.HandleFunc("/auth", handler.AuthHandler).Methods("POST")
+
 	n := negroni.New()
 	n.Use(negronilogrus.NewMiddleware())
 	n.UseHandler(r)

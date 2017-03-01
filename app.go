@@ -49,6 +49,8 @@ type CoreAuth interface {
 	RedirectURI() string
 	AuthURL(provider string, state string) string
 	Providers() []string
+	Auth(username string, password string) (*Token, error)
+	LocalEnabled() bool
 }
 
 // NonceStore simply stores a nonce for CSRF attack prevention
@@ -62,14 +64,20 @@ type User struct {
 	ID string
 }
 
-// UserService provides a function for creating a user from the given provider and providerUserID.
+// UserService provides two functions:
+//
+// UniqueUser is a function for creating a user from the given provider and providerUserID.
 // The created user contains the global unique user ID that is used within your environment.
 // user/hashuserservice is the most basic way to create a unique user by simply
 // hashing both the provider and providerUserID. It would also be possible to load
 // the user id from a DB using the provider and providerUserID as a key or just
 // concatenate both strings.
+//
+// LoginUser is a function that is called jwt_proxy also provides custom local
+// user login, i.e. not using a third party OAuth provider but your own database.
 type UserService interface {
 	UniqueUser(provider string, providerUserID string) (User, error)
+	LoginUser(username string, plainPassword string) error
 }
 
 // Provider is the interface every OAuth provider has to fulfill for being
@@ -96,6 +104,7 @@ type Config struct {
 	Audience      string
 	Issuer        string
 	Subject       string
+	LocalEnabled  bool
 	Password      string
 }
 
