@@ -3,6 +3,9 @@ package mock
 import (
 	"time"
 
+	"encoding/json"
+	"fmt"
+
 	"github.com/krinklesaurus/jwt_proxy"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
@@ -40,4 +43,26 @@ func NewMockConfig() *app.Config {
 			"MOCK_PROVIDER": newProvider(),
 		},
 	}
+}
+
+func (p *provider) String() string {
+	toString := struct {
+		ClientID   string   `json:"client_id"`
+		AuthURL    string   `json:"auth_url"`
+		TokenURL   string   `json:"token_url"`
+		RediectURL string   `json:"redirect_url"`
+		Scopes     []string `json:"scopes"`
+	}{
+		"mock-client-id",
+		"mock-auth-url",
+		"mock-token-url",
+		"mock-redirect-url",
+		[]string{"mock-scope-1", "mock-scope-2"},
+	}
+	b, err := json.Marshal(toString)
+	if err != nil {
+		fmt.Println(err)
+		return err.Error()
+	}
+	return string(b)
 }

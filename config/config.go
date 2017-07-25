@@ -3,12 +3,12 @@ package config
 import (
 	"crypto/x509"
 	"encoding/pem"
-	"fmt"
 	"io/ioutil"
 	"os"
 
+	"errors"
+
 	"github.com/krinklesaurus/jwt_proxy"
-	"github.com/krinklesaurus/jwt_proxy/log"
 	"github.com/krinklesaurus/jwt_proxy/provider"
 	"github.com/spf13/viper"
 )
@@ -71,22 +71,21 @@ func Initialize(configFile string) (*app.Config, error) {
 
 	configReader, err := os.Open(configFile)
 	if err != nil {
-		log.Infof("No config file provided, reading from other sources...")
-	} else {
-		err = viper.ReadConfig(configReader)
-		if err != nil {
-			panic(fmt.Sprintf("Could not read config file at %s", configFile))
-		}
+		return nil, err
+	}
+	err = viper.ReadConfig(configReader)
+	if err != nil {
+		return nil, err
 	}
 
 	rootURI := viper.GetString(configRootURI)
 	if rootURI == "" {
-		panic("No root_uri set!")
+		return nil, errors.New("No root_uri set!")
 	}
 
 	redirectURI := viper.GetString(configRedirectURI)
 	if redirectURI == "" {
-		panic("No redirect_uri set!")
+		return nil, errors.New("No redirect_uri set!")
 	}
 
 	providersConfig := viper.GetStringMap(configProviders)
@@ -120,7 +119,7 @@ func Initialize(configFile string) (*app.Config, error) {
 	}
 
 	if len(providers) <= 0 {
-		panic("No providers have been configured!")
+		return nil, errors.New("No providers have been configured!")
 	}
 
 	audience := viper.GetString(configJwtAudience)
@@ -129,33 +128,33 @@ func Initialize(configFile string) (*app.Config, error) {
 
 	signingMethodKey := viper.GetString(configSigningMethod)
 	if signingMethodKey == "" {
-		panic("No signing method set!")
+		return nil, errors.New("No signing method set!")
 	}
 	signingMethod := app.SigningMethods[signingMethodKey]
 	if signingMethod == nil {
-		panic("No valid signing method set!")
+		return nil, errors.New("No valid signing method set!")
 	}
 
 	publicKeyPath := viper.GetString(configPublicKeyPath)
 	derBytes, err := ioutil.ReadFile(publicKeyPath)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	block, _ := pem.Decode(derBytes)
 	rsaPub, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	privateKeyPath := viper.GetString(configPrivateKeyPath)
 	der, err := ioutil.ReadFile(privateKeyPath)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	block2, _ := pem.Decode(der)
 	rsaPriv, err := x509.ParsePKCS1PrivateKey(block2.Bytes)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	return &app.Config{RootURI: rootURI,

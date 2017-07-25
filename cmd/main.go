@@ -21,7 +21,8 @@ func main() {
 
 	config, err := config.Initialize(*configPtr)
 	if err != nil {
-		panic(err)
+		log.Errorf("error initializing config %v", err)
+		return
 	}
 
 	log.Infof("Config initialized: %s", config.String())
@@ -33,11 +34,13 @@ func main() {
 	core := core.New(config, tokenizer, userService)
 	store, err := handler.NewHTTPSessionStore()
 	if err != nil {
-		panic(err)
+		log.Errorf("error initializing session store %v", err)
+		return
 	}
 	handler, err := handler.New(core, store)
 	if err != nil {
-		panic(err)
+		log.Errorf("error initializing handler store %v", err)
+		return
 	}
 
 	r := mux.NewRouter()
