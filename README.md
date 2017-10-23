@@ -1,5 +1,17 @@
 # jwt_proxy
 
+<p align="center">
+    <img src="https://img.shields.io/docker/stars/krinklesaurus/jwt_proxy.svg"
+          alt="Docker Hub Stars">
+    <img src="https://img.shields.io/docker/pulls/krinklesaurus/jwt_proxy.svg"
+          alt="Docker Hub Pulls version">
+    <img src="https://img.shields.io/docker/automated/krinklesaurus/jwt_proxy.svg"
+          alt="Docker Hub Automated">
+    <img src="https://img.shields.io/docker/build/krinklesaurus/jwt_proxy.svg"
+          alt="Docker Hub Build status">
+</p>
+
+
 ## What is jwt_proxy?
 
 jwt_proxy is a small OAuth2 proxy service that returns JWT tokens that can be used for offline authentication in distributed environments like microservices, where several different services need a fast and safe way to process authentication.
