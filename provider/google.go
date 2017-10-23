@@ -37,10 +37,13 @@ func (g *GoogleProvider) UniqueUserID() (string, error) {
 	url := fmt.Sprintf("https://www.googleapis.com/oauth2/v2/userinfo?access_token=%s", g.token.AccessToken)
 
 	response, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
 	defer response.Body.Close()
 	contents, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	log.Debugf("contents from google: %s", contents)
@@ -58,4 +61,26 @@ func (g *GoogleProvider) Exchange(ctx context.Context, code string) (*oauth2.Tok
 	}
 	g.token = token
 	return g.token, err
+}
+
+func (g *GoogleProvider) String() string {
+	toString := struct {
+		ClientID   string   `json:"client_id"`
+		AuthURL    string   `json:"auth_url"`
+		TokenURL   string   `json:"token_url"`
+		RediectURL string   `json:"redirect_url"`
+		Scopes     []string `json:"scopes"`
+	}{
+		g.conf.ClientID,
+		g.conf.Endpoint.AuthURL,
+		g.conf.Endpoint.TokenURL,
+		g.conf.RedirectURL,
+		g.conf.Scopes,
+	}
+	b, err := json.Marshal(toString)
+	if err != nil {
+		fmt.Println(err)
+		return err.Error()
+	}
+	return string(b)
 }

@@ -2,11 +2,9 @@ root_uri: http://localhost:8080
 redirect_uri: http://localhost:8080/callback
 jwt:
   signingMethod: RS256
-  public_key: /certs/public.pem
-  private_key: /certs/private.pem
-  audience: your-audience
-  issuer: you
-  subject: your-subject
+  audience: stingray
+  issuer: Lucas Buhlmann
+  subject: It's a test
 providers:
   google:
     client_id: your-google-client-id
@@ -14,8 +12,8 @@ providers:
     scopes:
       - profile
   github:
-    client_id: your-github-client-id
-    client_secret: your-github-secret
+    client_id: 4128b7915769705c628f
+    client_secret: 0ea51e6d5ebc8cbb022784a29b0b274170d6ddba
     scopes:
       - user
   facebook:

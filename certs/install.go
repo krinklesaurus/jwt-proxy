@@ -58,7 +58,7 @@ func installCerts() {
 	f2.Close()
 }
 
-func createTestToken(c *core.Core) {
+func createTestToken(c *core.Core) (string, error) {
 	claims := jws.Claims{}
 
 	expiry := time.Now().AddDate(1, 0, 0)
@@ -84,14 +84,12 @@ func createTestToken(c *core.Core) {
 
 	b, err := c.Tokenizer.Serialize(claims)
 	if err != nil {
-		fmt.Printf("Sorry, could not create test token: %v", err)
+		return nil, err
 	}
 
 	jwtAsString := string(b)
 
-	log.Infof("--------- CREATED TEST TOKEN ---------")
-	log.Infof("%s", jwtAsString)
-	log.Infof("--------- CREATED TEST TOKEN ---------")
+	return jwtAsString, nil
 }
 
 func main() {
@@ -114,6 +112,13 @@ func main() {
 		userService := &user.HashUserService{}
 		tokenizer := core.NewRSATokenizer(config.SigningMethod, config.PrivateRSAKey)
 		core := core.New(config, tokenizer, userService)
-		createTestToken(core)
+		token, err := createTestToken(core)
+		if err != nil {
+			fmt.Errorf("error creating test token", err)
+			return
+		}
+		log.Infof("--------- CREATED TEST TOKEN ---------")
+		log.Infof("%s", token)
+		log.Infof("--------- CREATED TEST TOKEN ---------")
 	}
 }

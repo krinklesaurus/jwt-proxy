@@ -78,6 +78,7 @@ type Provider interface {
 	AuthCodeURL(state string) string
 	UniqueUserID() (string, error)
 	Exchange(ctx context.Context, code string) (*oauth2.Token, error)
+	String() string
 }
 
 // Tokenizer creates a byte array from an input map.

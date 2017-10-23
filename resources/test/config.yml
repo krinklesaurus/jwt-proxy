@@ -2,8 +2,8 @@ root_uri: http://localhost:8080
 redirect_uri: http://localhost:8080/callback
 jwt:
   signingMethod: RS256
-  public_key: /certs/public.pem
-  private_key: /certs/private.pem
+  public_key: ../certs/public.pem
+  private_key: ../certs/private.pem
   audience: your-audience
   issuer: you
   subject: your-subject

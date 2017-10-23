@@ -1,19 +1,22 @@
-DOCKER ?= docker
-
 SOURCEDIR = .
-BINARY_NAME ?= jwt_proxy
+NAME ?= jwt_proxy
+VERSION=$(shell git rev-parse --short HEAD)
 
-VERSION := $(shell echo "0.1.0")
-IMAGEID := $(shell docker images -q $(TAG))
+default: build
 
 .PHONY: clean
 clean:
-	if [ -f ${BINARY_NAME} ] ; then rm ${BINARY_NAME}; fi
+	@if [ -f ${NAME} ] ; then rm ${NAME}; fi
 
 
 .PHONY: test
 test:
 	go test -v -race -cover $$(go list ./... | grep -v /vendor/)
+
+
+.PHONY: vet
+vet:
+	go vet -v $(go list ./... | grep -v /vendor/)
 
 
 .PHONY: lint
@@ -23,14 +26,9 @@ lint:
 
 .PHONY: build
 build: clean test lint
-	CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ${BINARY_NAME} ./cmd
+	CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ${NAME} ./cmd
 
 
 .PHONY: dockerbuild
-dockerbuild: clean build
-	$(DOCKER) build -t $(NAME):${VERSION} --rm=true --no-cache $(SOURCEDIR)
-
-
-.PHONY: dockerrun
-dockerrun:
-	$(DOCKER) run --rm --name=$(BINARY_NAME) -p 8080:8080 $(NAME):${VERSION}
+dockerbuild: build
+	docker build -t ${NAME}:latest -t ${NAME}:${VERSION} .
