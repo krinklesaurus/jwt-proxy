@@ -5,6 +5,9 @@ WORKDIR /go/src/github.com/krinklesaurus/jwt_proxy
 
 COPY . .
 
+RUN go get -u github.com/golang/dep/cmd/dep \
+    && dep ensure
+
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o jwt_proxy ./cmd
 
 
