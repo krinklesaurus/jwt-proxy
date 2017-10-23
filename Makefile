@@ -1,13 +1,18 @@
 SOURCEDIR = .
-NAME ?= jwt_proxy
+NAME ?= './jwt_proxy'
+DEP_FOLDER ?= './vendor/'
 VERSION=$(shell git rev-parse --short HEAD)
 
 default: build
 
 .PHONY: clean
 clean:
-	@if [ -f ${NAME} ] ; then rm ${NAME}; fi
+	@if [ -f ${NAME} ] ; then rm ${NAME}; fi	
 
+.PHONY: dep
+dep:
+	@if [ -d ${DEP_FOLDER} ] ; then rm -rf ${DEP_FOLDER}; fi
+	dep ensure
 
 .PHONY: test
 test:
@@ -25,7 +30,7 @@ lint:
 
 
 .PHONY: build
-build: clean test lint
+build: clean dep test lint
 	CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ${NAME} ./cmd
 
 

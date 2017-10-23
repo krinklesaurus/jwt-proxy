@@ -11,6 +11,11 @@
           alt="Docker Hub Build status">
 </p>
 
+---
+
+**PLEASE NOTE THAT jwt_proxy SHOULD NOT BE USED IN PRODUCTION ENVIRONMENTS YET!**
+
+---
 
 ## What is jwt_proxy?
 
