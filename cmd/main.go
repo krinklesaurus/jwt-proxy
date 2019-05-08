@@ -10,11 +10,14 @@ import (
 	"github.com/krinklesaurus/jwt_proxy/handler"
 	"github.com/krinklesaurus/jwt_proxy/log"
 	"github.com/krinklesaurus/jwt_proxy/user"
-	"github.com/meatballhat/negroni-logrus"
+	negronilogrus "github.com/meatballhat/negroni-logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/negroni"
 )
 
 func main() {
+	log.WithLevel(logrus.InfoLevel)
+
 	configPtr := flag.String("config", "config.yml", "configuration file")
 
 	flag.Parse()

@@ -1,5 +1,5 @@
 NAME ?= jwt_proxy
-VERSION=$(shell git rev-parse --short HEAD)
+VERSION=$(shell cat ./VERSION)
 REAL_CONFIG=real-config.yml
 MOUNT_REAL_CONFIG=$(if test -f "$(PWD)/${REAL_CONFIG}",-v $(PWD)/${REAL_CONFIG}:/etc/jwt_proxy/config.yml,)
 
@@ -51,4 +51,4 @@ deploy: clean validate compile test
 # done in the build environment, copies the final package to the remote repository for sharing with other developers and projects.
 .PHONY: run
 run: 
-	docker run -v ${PWD}/certs/:/etc/jwt_proxy/certs/ ${MOUNT_REAL_CONFIG} -p 8080:8080 ${NAME}:latest
+	docker run -v ${PWD}/certs/:/etc/jwt_proxy/certs/ ${MOUNT_REAL_CONFIG} -p 8080:8080 ${NAME}:${VERSION}

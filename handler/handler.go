@@ -7,7 +7,7 @@ import (
 
 	"github.com/alecthomas/template"
 	"github.com/gorilla/mux"
-	"github.com/krinklesaurus/jwt_proxy"
+	app "github.com/krinklesaurus/jwt_proxy"
 	"github.com/krinklesaurus/jwt_proxy/log"
 )
 
@@ -92,6 +92,7 @@ func (handler *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Sorry, some unknown error occurred", http.StatusInternalServerError)
 		return
 	}
+
 	templateData := struct {
 		LocalAuthURL string
 		Providers    []string

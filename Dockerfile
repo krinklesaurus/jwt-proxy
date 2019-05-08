@@ -24,6 +24,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o jwt_proxy ./cmd
 # stage 3
 FROM alpine:3.8
 
+RUN apk add ca-certificates
+
 WORKDIR /etc/jwt_proxy
 
 COPY certs /etc/jwt_proxy/certs
