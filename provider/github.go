@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/krinklesaurus/jwt_proxy"
+	app "github.com/krinklesaurus/jwt_proxy"
 	"github.com/krinklesaurus/jwt_proxy/log"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
@@ -51,7 +51,7 @@ func (g *GithubProvider) UniqueUserID() (string, error) {
 	dec := json.NewDecoder(bytes.NewReader(contents))
 	var asMap map[string]string
 	dec.Decode(&asMap)
-	return asMap["id"], nil
+	return asMap["login"], nil
 }
 
 func (g *GithubProvider) Exchange(ctx context.Context, code string) (*oauth2.Token, error) {

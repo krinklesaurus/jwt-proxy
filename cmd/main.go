@@ -30,7 +30,7 @@ func main() {
 
 	log.Infof("Config initialized: %s", config.String())
 
-	userService := &user.HashUserService{}
+	userService := &user.PlainUserService{}
 
 	tokenizer := core.NewRSATokenizer(config.SigningMethod, config.PrivateRSAKey)
 
