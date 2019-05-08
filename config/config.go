@@ -3,139 +3,95 @@ package config
 import (
 	"crypto/x509"
 	"encoding/pem"
-	"io/ioutil"
-	"os"
-
 	"errors"
+	"fmt"
+	"io/ioutil"
+	"strings"
 
 	"github.com/krinklesaurus/jwt_proxy"
 	"github.com/krinklesaurus/jwt_proxy/provider"
 	"github.com/spf13/viper"
 )
 
-const configName string = "config"
-const configType string = "yaml"
-
-const configRootURI string = "root_uri"
-const configRedirectURI string = "redirect_uri"
-const configProviders string = "providers"
-const configProviderClientID string = "client_id"
-const configProviderClientSecret string = "client_secret"
-const configProviderScopes string = "scopes"
-
-const configGoogleClientID string = configProviders + ".google." + configProviderClientID
-const configGoogleClientSecret string = configProviders + ".google." + configProviderClientSecret
-const configGoogleScopes string = configProviders + ".google." + configProviderScopes
-
-const configFacebookClientID string = configProviders + ".facebook." + configProviderClientID
-const configFacebookClientSecret string = configProviders + ".facebook." + configProviderClientSecret
-const configFacebookScopes string = configProviders + ".facebook." + configProviderScopes
-
-const configGithubClientID string = configProviders + ".github." + configProviderClientID
-const configGithubClientSecret string = configProviders + ".github." + configProviderClientSecret
-const configGithubScopes string = configProviders + ".github." + configProviderScopes
-
-const configSigningMethod string = "jwt.signingMethod"
-const configPublicKeyPath string = "jwt.public_key"
-const configPrivateKeyPath string = "jwt.private_key"
-const configJwtAudience string = "jwt.audience"
-const configJwtIssuer string = "jwt.issuer"
-const configJwtSubject string = "jwt.subject"
-
 func Initialize(configFile string) (*app.Config, error) {
-	viper.SetConfigType(configType)
+	if configFile != "" {
+		viper.SetConfigFile(configFile)
+	} else {
+		viper.SetConfigName("config")
+		viper.AddConfigPath("/etc/appname/")
+		viper.AddConfigPath(".")
+	}
+
 	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
-	viper.BindEnv(configRootURI, "ROOT_URI")
-	viper.BindEnv(configRedirectURI, "REDIRECT_URI")
-
-	viper.BindEnv(configGoogleClientID, "GOOGLE_CLIENTID")
-	viper.BindEnv(configGoogleClientSecret, "GOOGLE_SECRET")
-	viper.BindEnv(configGoogleScopes, "GOOGLE_SCOPES")
-
-	viper.BindEnv(configFacebookClientID, "FACEBOOK_CLIENTID")
-	viper.BindEnv(configFacebookClientSecret, "FACEBOOK_SECRET")
-	viper.BindEnv(configFacebookScopes, "FACEBOOK_SCOPES")
-
-	viper.BindEnv(configGithubClientID, "GITHUB_CLIENTID")
-	viper.BindEnv(configGithubClientSecret, "GITHUB_SECRET")
-	viper.BindEnv(configGithubScopes, "GITHUB_SCOPES")
-
-	viper.BindEnv(configSigningMethod, "SIGNINGMETHOD")
-	viper.BindEnv(configPublicKeyPath, "PUBLICKEY_PATH")
-	viper.BindEnv(configPrivateKeyPath, "PRIVATEKEY_PATH")
-
-	viper.BindEnv(configJwtAudience, "JWT_AUDIENCE")
-	viper.BindEnv(configJwtIssuer, "JWT_ISSUER")
-	viper.BindEnv(configJwtSubject, "JWT_SUBJECT")
-
-	configReader, err := os.Open(configFile)
-	if err != nil {
-		return nil, err
-	}
-	err = viper.ReadConfig(configReader)
-	if err != nil {
-		return nil, err
+	if err := viper.ReadInConfig(); err != nil {
+		fmt.Println("could read config file:", viper.ConfigFileUsed())
 	}
 
-	rootURI := viper.GetString(configRootURI)
+	rootURI := viper.GetString("root-uri")
 	if rootURI == "" {
-		return nil, errors.New("No root_uri set!")
+		return nil, errors.New("no root-uri set")
 	}
 
-	redirectURI := viper.GetString(configRedirectURI)
+	redirectURI := viper.GetString("redirect-uri")
 	if redirectURI == "" {
-		return nil, errors.New("No redirect_uri set!")
+		return nil, errors.New("no redirect-uri set")
 	}
-
-	providersConfig := viper.GetStringMap(configProviders)
 
 	providers := map[string]app.Provider{}
-	if providersConfig["google"] != "" {
+
+	googleConfig := viper.Sub("google")
+	if googleConfig != nil {
 		providers["google"] = provider.NewGoogle(
 			rootURI,
-			viper.GetString(configGoogleClientID),
-			viper.GetString(configGoogleClientSecret),
-			viper.GetStringSlice(configGoogleScopes),
+			viper.GetString("google.clientid"),
+			viper.GetString("google.clientsecret"),
+			viper.GetStringSlice("google.scopes"),
 		)
 	}
 
-	if providersConfig["github"] != "" {
+	githubConfig := viper.Sub("github")
+	if githubConfig != nil {
 		providers["github"] = provider.NewGithub(
 			rootURI,
-			viper.GetString(configGithubClientID),
-			viper.GetString(configGithubClientSecret),
-			viper.GetStringSlice(configGithubScopes),
+			viper.GetString("github.clientid"),
+			viper.GetString("github.clientsecret"),
+			viper.GetStringSlice("github.scopes"),
 		)
 	}
 
-	if providersConfig["facebook"] != "" {
+	facebookConfig := viper.Sub("facebook")
+	if facebookConfig != nil {
 		providers["facebook"] = provider.NewFacebook(
 			rootURI,
-			viper.GetString(configFacebookClientID),
-			viper.GetString(configFacebookClientSecret),
-			viper.GetStringSlice(configFacebookScopes),
+			viper.GetString("facebook.clientid"),
+			viper.GetString("facebook.clientsecret"),
+			viper.GetStringSlice("facebook.scopes"),
 		)
 	}
 
 	if len(providers) <= 0 {
-		return nil, errors.New("No providers have been configured!")
+		return nil, errors.New("no providers have been configured")
 	}
 
-	audience := viper.GetString(configJwtAudience)
-	issuer := viper.GetString(configJwtIssuer)
-	subject := viper.GetString(configJwtSubject)
+	audience := viper.GetString("jwt.audience")
+	issuer := viper.GetString("jwt.issuer")
+	subject := viper.GetString("jwt.subject")
 
-	signingMethodKey := viper.GetString(configSigningMethod)
+	signingMethodKey := viper.GetString("jwt.signingMethod")
 	if signingMethodKey == "" {
-		return nil, errors.New("No signing method set!")
+		return nil, errors.New("no signing method set")
 	}
 	signingMethod := app.SigningMethods[signingMethodKey]
 	if signingMethod == nil {
-		return nil, errors.New("No valid signing method set!")
+		return nil, errors.New("no valid signing method set")
 	}
 
-	publicKeyPath := viper.GetString(configPublicKeyPath)
+	publicKeyPath := viper.GetString("jwt.public-key")
+	if publicKeyPath == "" {
+		publicKeyPath = "/etc/jwt_proxy/certs/public.pem"
+	}
 	derBytes, err := ioutil.ReadFile(publicKeyPath)
 	if err != nil {
 		return nil, err
@@ -146,7 +102,10 @@ func Initialize(configFile string) (*app.Config, error) {
 		return nil, err
 	}
 
-	privateKeyPath := viper.GetString(configPrivateKeyPath)
+	privateKeyPath := viper.GetString("jwt.private-key")
+	if privateKeyPath == "" {
+		privateKeyPath = "/etc/jwt_proxy/certs/private.pem"
+	}
 	der, err := ioutil.ReadFile(privateKeyPath)
 	if err != nil {
 		return nil, err

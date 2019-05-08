@@ -15,13 +15,13 @@ import (
 )
 
 func main() {
-	configPtr := flag.String("config", "", "configuration file")
+	configPtr := flag.String("config", "config.yml", "configuration file")
 
 	flag.Parse()
 
 	config, err := config.Initialize(*configPtr)
 	if err != nil {
-		log.Errorf("error initializing config %v", err)
+		log.Errorf("error initializing config from %s, %v", *configPtr, err)
 		return
 	}
 

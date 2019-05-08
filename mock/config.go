@@ -1,10 +1,9 @@
 package mock
 
 import (
-	"time"
-
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/krinklesaurus/jwt_proxy"
 	"golang.org/x/net/context"
@@ -43,6 +42,10 @@ func NewMockConfig() *app.Config {
 			"MOCK_PROVIDER": newProvider(),
 		},
 	}
+}
+
+func (p *provider) Name() string {
+	return "mockprovider"
 }
 
 func (p *provider) String() string {

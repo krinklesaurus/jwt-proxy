@@ -7,7 +7,6 @@ import (
 
 	"github.com/SermoDigital/jose/crypto"
 	"github.com/SermoDigital/jose/jws"
-
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 )
@@ -79,6 +78,7 @@ type Provider interface {
 	UniqueUserID() (string, error)
 	Exchange(ctx context.Context, code string) (*oauth2.Token, error)
 	String() string
+	Name() string
 }
 
 // Tokenizer creates a byte array from an input map.
@@ -102,7 +102,11 @@ type Config struct {
 
 // String is a helping toString function for the config for debugging
 func (c *Config) String() string {
-	return fmt.Sprintf("rootURI: %s, redirectURI: %s, Audience: %s, Issuer: %s, Subject: %s", c.RootURI, c.RedirectURI, c.Audience, c.Issuer, c.Subject)
+	providersString := ""
+	for _, p := range c.Providers {
+		providersString = providersString + fmt.Sprintf(" %s,", p.Name())
+	}
+	return fmt.Sprintf("rootURI: %s, redirectURI: %s, Audience: %s, Issuer: %s, Subject: %s, Providers: %s", c.RootURI, c.RedirectURI, c.Audience, c.Issuer, c.Subject, providersString)
 }
 
 // Log is an interface for logging

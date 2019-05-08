@@ -65,6 +65,10 @@ func (f *FacebookProvider) Exchange(ctx context.Context, code string) (*oauth2.T
 	return f.token, err
 }
 
+func (f *FacebookProvider) Name() string {
+	return "facebook"
+}
+
 func (f *FacebookProvider) String() string {
 	toString := struct {
 		ClientID   string   `json:"client_id"`

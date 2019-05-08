@@ -63,6 +63,10 @@ func (g *GithubProvider) Exchange(ctx context.Context, code string) (*oauth2.Tok
 	return g.token, err
 }
 
+func (g *GithubProvider) Name() string {
+	return "github"
+}
+
 func (g *GithubProvider) String() string {
 	toString := struct {
 		ClientID   string   `json:"client_id"`
