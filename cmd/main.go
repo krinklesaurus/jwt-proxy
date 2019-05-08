@@ -10,18 +10,21 @@ import (
 	"github.com/krinklesaurus/jwt_proxy/handler"
 	"github.com/krinklesaurus/jwt_proxy/log"
 	"github.com/krinklesaurus/jwt_proxy/user"
-	"github.com/meatballhat/negroni-logrus"
+	negronilogrus "github.com/meatballhat/negroni-logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/negroni"
 )
 
 func main() {
-	configPtr := flag.String("config", "", "configuration file")
+	log.WithLevel(logrus.InfoLevel)
+
+	configPtr := flag.String("config", "config.yml", "configuration file")
 
 	flag.Parse()
 
 	config, err := config.Initialize(*configPtr)
 	if err != nil {
-		log.Errorf("error initializing config %v", err)
+		log.Errorf("error initializing config from %s, %v", *configPtr, err)
 		return
 	}
 

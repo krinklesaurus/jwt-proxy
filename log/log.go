@@ -1,21 +1,45 @@
 package log
 
-import "github.com/sirupsen/logrus"
+import (
+	"github.com/sirupsen/logrus"
+)
 
-var log = logrus.New()
+var logger = logrus.StandardLogger()
+
+// Log simply overlays logger.Log for decoupling
+type Log interface {
+	Debugf(format string, args ...interface{})
+	Infof(format string, args ...interface{})
+	Warnf(format string, args ...interface{})
+	Errorf(format string, args ...interface{})
+	Fatalf(format string, args ...interface{})
+	Panicf(format string, args ...interface{})
+}
+
+func WithLevel(level logrus.Level) {
+	logger.SetLevel(level)
+}
 
 func Debugf(format string, args ...interface{}) {
-	log.Debugf(format, args...)
+	logger.Debugf(format, args...)
 }
 
 func Infof(format string, args ...interface{}) {
-	log.Infof(format, args...)
+	logger.Infof(format, args...)
 }
 
 func Warnf(format string, args ...interface{}) {
-	log.Warnf(format, args...)
+	logger.Warnf(format, args...)
 }
 
 func Errorf(format string, args ...interface{}) {
-	log.Errorf(format, args...)
+	logger.Errorf(format, args...)
+}
+
+func Fatalf(format string, args ...interface{}) {
+	logger.Fatalf(format, args...)
+}
+
+func Panicf(format string, args ...interface{}) {
+	logger.Panicf(format, args...)
 }

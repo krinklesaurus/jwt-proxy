@@ -89,9 +89,13 @@ func createTestToken(c *core.Core) {
 
 	jwtAsString := string(b)
 
-	log.Infof("--------- CREATED TEST TOKEN ---------")
+	log.Infof("--------- CREATE TEST TOKEN CLAIMS BEGIN ---------")
+	log.Infof("%v", claims)
+	log.Infof("--------- CREATED TEST TOKEN CLAIMS END ---------")
+
+	log.Infof("--------- CREATED TEST TOKEN BEGIN ---------")
 	log.Infof("%s", jwtAsString)
-	log.Infof("--------- CREATED TEST TOKEN ---------")
+	log.Infof("--------- CREATED TEST TOKEN END ---------")
 }
 
 func main() {

@@ -35,27 +35,27 @@ func ExampleInitialize() {
 	// {"client_id":"your-github-client-id","auth_url":"https://github.com/login/oauth/authorize","token_url":"https://github.com/login/oauth/access_token","redirect_url":"http://localhost:8080/callback/github","scopes":["user"]}
 }
 
-func ExampleInitialize_second() {
+func ExampleInitialize_envvars() {
 	configPath := "../resources/test/config.yml"
 
-	os.Setenv("ROOT_URI", "http://envvar:8080")
-	os.Setenv("REDIRECT_URI", "http://envvar:8080/callback")
+	os.Setenv("ROOT-URI", "http://envvar:8080")
+	os.Setenv("REDIRECT-URI", "http://envvar:8080/callback")
 	os.Setenv("SIGNINGMETHOD", "RS256")
 	os.Setenv("JWT_AUDIENCE", "envar-audience")
 	os.Setenv("JWT_ISSUER", "envar-issuer")
 	os.Setenv("JWT_SUBJECT", "envar-subject")
 
 	os.Setenv("GOOGLE_CLIENTID", "envvar-google-client-id")
-	os.Setenv("GOOGLE_SECRET", "envvar-google-client-secret")
-	os.Setenv("GOOGLE_SCOPES", "envvar-scope-1 envvar-scope-2")
+	os.Setenv("GOOGLE_CLIENTSECRET", "envvar-google-client-secret")
+	os.Setenv("GOOGLE_SCOPES", "envvar-go-scope-1 envvar-go-scope-2")
 
 	os.Setenv("FACEBOOK_CLIENTID", "envvar-facebook-client-id")
-	os.Setenv("FACEBOOK_SECRET", "envvar-facebook-client-secret")
-	os.Setenv("FACEBOOK_SCOPES", "envvar-scope-1 envvar-scope-2")
+	os.Setenv("FACEBOOK_CLIENTSECRET", "envvar-facebook-client-secret")
+	os.Setenv("FACEBOOK_SCOPES", "envvar-fb-scope-1 envvar-fb-scope-2")
 
 	os.Setenv("GITHUB_CLIENTID", "envvar-github-client-id")
-	os.Setenv("GITHUB_SECRET", "envvar-github-client-secret")
-	os.Setenv("GITHUB_SCOPES", "envvar-scope-1 envvar-scope-2")
+	os.Setenv("GITHUB_CLIENTSECRET", "envvar-github-client-secret")
+	os.Setenv("GITHUB_SCOPES", "envvar-git-scope-1 envvar-git-scope-2")
 
 	defer func() {
 		os.Unsetenv("ROOT_URI")
@@ -64,19 +64,17 @@ func ExampleInitialize_second() {
 		os.Unsetenv("JWT_AUDIENCE")
 		os.Unsetenv("JWT_ISSUER")
 		os.Unsetenv("JWT_SUBJECT")
-		os.Unsetenv("PUBLICKEY_PATH")
-		os.Unsetenv("PRIVATEKEY_PATH")
 
 		os.Unsetenv("GOOGLE_CLIENTID")
-		os.Unsetenv("GOOGLE_SECRET")
+		os.Unsetenv("GOOGLE_CLIENTSECRET")
 		os.Unsetenv("GOOGLE_SCOPES")
 
 		os.Unsetenv("FACEBOOK_CLIENTID")
-		os.Unsetenv("FACEBOOK_SECRET")
+		os.Unsetenv("FACEBOOK_CLIENTSECRET")
 		os.Unsetenv("FACEBOOK_SCOPES")
 
 		os.Unsetenv("GITHUB_CLIENTID")
-		os.Unsetenv("GITHUB_SECRET")
+		os.Unsetenv("GITHUB_CLIENTSECRET")
 		os.Unsetenv("GITHUB_SCOPES")
 	}()
 
@@ -102,7 +100,7 @@ func ExampleInitialize_second() {
 	// envar-audience
 	// envar-issuer
 	// envar-subject
-	// {"client_id":"envvar-google-client-id","auth_url":"https://accounts.google.com/o/oauth2/auth","token_url":"https://accounts.google.com/o/oauth2/token","redirect_url":"http://envvar:8080/callback/google","scopes":["envvar-scope-1","envvar-scope-2"]}
-	// {"client_id":"envvar-facebook-client-id","auth_url":"https://www.facebook.com/dialog/oauth","token_url":"https://graph.facebook.com/oauth/access_token","redirect_url":"http://envvar:8080/callback/facebook","scopes":["envvar-scope-1","envvar-scope-2"]}
-	// {"client_id":"envvar-github-client-id","auth_url":"https://github.com/login/oauth/authorize","token_url":"https://github.com/login/oauth/access_token","redirect_url":"http://envvar:8080/callback/github","scopes":["envvar-scope-1","envvar-scope-2"]}
+	// {"client_id":"envvar-google-client-id","auth_url":"https://accounts.google.com/o/oauth2/auth","token_url":"https://accounts.google.com/o/oauth2/token","redirect_url":"http://envvar:8080/callback/google","scopes":["envvar-go-scope-1","envvar-go-scope-2"]}
+	// {"client_id":"envvar-facebook-client-id","auth_url":"https://www.facebook.com/dialog/oauth","token_url":"https://graph.facebook.com/oauth/access_token","redirect_url":"http://envvar:8080/callback/facebook","scopes":["envvar-fb-scope-1","envvar-fb-scope-2"]}
+	// {"client_id":"envvar-github-client-id","auth_url":"https://github.com/login/oauth/authorize","token_url":"https://github.com/login/oauth/access_token","redirect_url":"http://envvar:8080/callback/github","scopes":["envvar-git-scope-1","envvar-git-scope-2"]}
 }

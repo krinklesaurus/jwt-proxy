@@ -63,6 +63,10 @@ func (g *GoogleProvider) Exchange(ctx context.Context, code string) (*oauth2.Tok
 	return g.token, err
 }
 
+func (g *GoogleProvider) Name() string {
+	return "google"
+}
+
 func (g *GoogleProvider) String() string {
 	toString := struct {
 		ClientID   string   `json:"client_id"`

@@ -7,7 +7,7 @@ import (
 
 	"github.com/alecthomas/template"
 	"github.com/gorilla/mux"
-	"github.com/krinklesaurus/jwt_proxy"
+	app "github.com/krinklesaurus/jwt_proxy"
 	"github.com/krinklesaurus/jwt_proxy/log"
 )
 
@@ -77,9 +77,9 @@ func (handler *Handler) CallbackHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (handler *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
-	loginTemplate, err := template.ParseFiles("www/login.html")
+	loginTemplate, err := template.ParseFiles("/etc/jwt_proxy/www/login.html")
 	if err != nil {
-		log.Errorf("error parsing www/login.html %s", err.Error())
+		log.Errorf("error parsing /etc/jwt_proxy/www/login.html %s", err.Error())
 		http.Error(w, "Sorry, some unknown error occurred", http.StatusInternalServerError)
 		return
 	}
@@ -92,6 +92,7 @@ func (handler *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Sorry, some unknown error occurred", http.StatusInternalServerError)
 		return
 	}
+
 	templateData := struct {
 		LocalAuthURL string
 		Providers    []string

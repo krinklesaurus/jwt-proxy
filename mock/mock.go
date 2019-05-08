@@ -51,8 +51,8 @@ func init() {
 
 	MockClaims = jwt.Claims{}
 	MockClaims.SetIssuer("my-company")
-	MockClaims.SetIssuedAt(time.Unix(1472828729, 0))
-	MockClaims.SetExpiration(time.Unix(1504364729, 0))
+	MockClaims.SetIssuedAt(time.Now())
+	MockClaims.SetExpiration(time.Now().AddDate(1, 0, 0))
 	MockClaims.SetAudience("www.my-company.com")
 	MockClaims.SetSubject("you@my-company.com")
 }

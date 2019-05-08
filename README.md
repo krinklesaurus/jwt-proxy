@@ -14,13 +14,13 @@
 
 ## What is jwt_proxy?
 
-jwt_proxy is a small OAuth2 proxy service that returns JWT tokens that can be used for offline authentication in distributed environments like microservices, where several different services need a fast and safe way to process authentication.
+jwt_proxy is a small OAuth2 proxy service that wraps OAuth access tokens from 3rd party OAuth providers like Google, Facebook or Github into signed JWT tokens which can be used for offline authentication in distributed environments like microservices, where several different services need a fast and safe way to process authentication.
 
 The JWT token returned by jwt_proxy cannot only be used to check wether a user is allowed to call your api, it also contains the OAuth2 provider's access token and a unique user id based on the provider and the user's id from the provider.
 
 ## How does jwt_proxy work?
 
-jwt_proxy provides a simple login page that contains links to all supported third party OAuth2 providers (currently these are Google, Facebook and Github). As soon as a user selects one of the provider, jwt_proxy starts the OAuth2 `Authorization Code Grant` to obtain an access token from the selected OAuth2 provider. This token is then signed with a custom private signing key and returned as a JWT token which can be used by further calls to your Web API.
+jwt_proxy provides a simple login page that contains links to all supported third party OAuth2 providers (currently these are Google, Facebook and Github). As soon as a user selects one of the provider, jwt_proxy starts the OAuth2 `Authorization Code Grant` to obtain an access token from the selected OAuth2 provider. This token is then signed with a custom private signing key and returned as a JWT token which can be used by further calls to your Web API. Within your webservices you can use the public key from your private/public key pair to verify that the token is valid without making an API call to the original OAuth provider.
 
 This figure illustrates the basic flow jwt_proxy provides:
 

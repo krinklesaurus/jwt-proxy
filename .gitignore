@@ -29,3 +29,5 @@ certs/private.pem
 certs/public.pem
 luzr.yml
 jwt_proxy
+real-config.yml
+cover.*
