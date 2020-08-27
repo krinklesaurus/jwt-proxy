@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/krinklesaurus/jwt_proxy"
+	app "github.com/krinklesaurus/jwt_proxy"
 	"github.com/krinklesaurus/jwt_proxy/provider"
 	"github.com/spf13/viper"
 )
@@ -18,7 +18,6 @@ func Initialize(configFile string) (*app.Config, error) {
 		viper.SetConfigFile(configFile)
 	} else {
 		viper.SetConfigName("config")
-		viper.AddConfigPath("/etc/appname/")
 		viper.AddConfigPath(".")
 	}
 
@@ -90,7 +89,7 @@ func Initialize(configFile string) (*app.Config, error) {
 
 	publicKeyPath := viper.GetString("jwt.public-key")
 	if publicKeyPath == "" {
-		publicKeyPath = "/etc/jwt_proxy/certs/public.pem"
+		publicKeyPath = "certs/public.pem"
 	}
 	derBytes, err := ioutil.ReadFile(publicKeyPath)
 	if err != nil {
@@ -104,7 +103,7 @@ func Initialize(configFile string) (*app.Config, error) {
 
 	privateKeyPath := viper.GetString("jwt.private-key")
 	if privateKeyPath == "" {
-		privateKeyPath = "/etc/jwt_proxy/certs/private.pem"
+		privateKeyPath = "certs/private.pem"
 	}
 	der, err := ioutil.ReadFile(privateKeyPath)
 	if err != nil {

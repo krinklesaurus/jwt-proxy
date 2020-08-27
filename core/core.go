@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/SermoDigital/jose/jws"
-	"github.com/krinklesaurus/jwt_proxy"
+	app "github.com/krinklesaurus/jwt_proxy"
 	"github.com/krinklesaurus/jwt_proxy/log"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/oauth2"

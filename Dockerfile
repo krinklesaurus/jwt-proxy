@@ -1,37 +1,60 @@
-# stage 1
-FROM golang:1.12.4-alpine3.9 AS build_base
+############################
+# STEP 1 build executable binary
+############################
+# golang alpine 1.14.4
+FROM golang:1.14.7-alpine3.12 as builder
 
-RUN apk add bash ca-certificates git gcc g++ libc-dev
+# Install git + SSL ca certificates.
+# Git is required for fetching the dependencies.
+# Ca-certificates is required to call HTTPS endpoints.
+RUN apk update && apk add --no-cache git ca-certificates tzdata build-base && update-ca-certificates
 
-ENV GO111MODULE=on
+# Create appuser
+ENV USER=appuser
+ENV UID=10001
 
-WORKDIR /src
+# See https://stackoverflow.com/a/55757473/12429735
+RUN adduser \
+    --disabled-password \
+    --gecos "" \
+    --home "/nonexistent" \
+    --shell "/sbin/nologin" \
+    --no-create-home \
+    --uid "${UID}" \
+    "${USER}"
 
-COPY go.mod .
-COPY go.sum .
+WORKDIR /jwt_proxy
+COPY . .
 
-RUN go mod download
+RUN ls -la
 
-
-# stage 2
-FROM build_base AS builder
-
-ADD . .
+# Fetch dependencies.
+RUN go mod download &&\
+    go mod verify
 
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o jwt_proxy ./cmd
 
 
-# stage 3
-FROM alpine:3.8
+############################
+# STEP 2 build a small image
+############################
+FROM alpine:3.12
 
-RUN apk add ca-certificates
+# Import from builder.
+COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /etc/passwd /etc/passwd
+COPY --from=builder /etc/group /etc/group
 
-WORKDIR /etc/jwt_proxy
+WORKDIR /jwt_proxy
 
-COPY certs /etc/jwt_proxy/certs
-COPY www /etc/jwt_proxy/www
-COPY config.yml /etc/jwt_proxy/config.yml
-COPY --from=builder /src/jwt_proxy .
+COPY --from=builder /jwt_proxy/jwt_proxy .
+COPY --from=builder /jwt_proxy/certs certs
+COPY --from=builder /jwt_proxy/www www
+COPY --from=builder /jwt_proxy/config.yml config.yml
+
+# Use an unprivileged user.
+USER appuser:appuser
 
 ENTRYPOINT ["./jwt_proxy"]
 
