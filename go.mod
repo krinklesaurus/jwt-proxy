@@ -5,7 +5,7 @@ go 1.12
 require (
 	cloud.google.com/go v0.10.0 // indirect
 	github.com/SermoDigital/jose v0.0.0-20161205224733-f6df55f235c2
-	github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc
+	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/fsnotify/fsnotify v1.4.2 // indirect
 	github.com/golang/protobuf v0.0.0-20170712042213-0a4f71a498b7 // indirect
 	github.com/gorilla/context v1.1.1 // indirect
