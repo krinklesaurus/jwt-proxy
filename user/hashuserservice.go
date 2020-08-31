@@ -6,23 +6,20 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/krinklesaurus/jwt_proxy"
-	"github.com/krinklesaurus/jwt_proxy/log"
+	"github.com/krinklesaurus/jwt-proxy/log"
 )
 
 type HashUserService struct {
 }
 
-func (us *HashUserService) UniqueUser(provider string, providerUserID string) (app.User, error) {
+func (us *HashUserService) UniqueUser(provider string, providerUserID string) (string, error) {
 	hash := sha256.New()
 	hash.Write([]byte(provider + ":" + providerUserID))
 	hashedUserID := fmt.Sprintf("%x", hash.Sum(nil))
 
 	log.Debugf("user id %s from provider \"%s\" and id \"%s\"", hashedUserID, provider, providerUserID)
 
-	return app.User{
-		ID: hashedUserID,
-	}, nil
+	return hashedUserID, nil
 }
 
 func (us *HashUserService) LoginUser(username string, plainPassword string) error {

@@ -8,8 +8,8 @@ import (
 	"io/ioutil"
 	"strings"
 
-	app "github.com/krinklesaurus/jwt_proxy"
-	"github.com/krinklesaurus/jwt_proxy/provider"
+	app "github.com/krinklesaurus/jwt-proxy"
+	"github.com/krinklesaurus/jwt-proxy/provider"
 	"github.com/spf13/viper"
 )
 
@@ -25,48 +25,53 @@ func Initialize(configFile string) (*app.Config, error) {
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	if err := viper.ReadInConfig(); err != nil {
-		fmt.Println("could read config file:", viper.ConfigFileUsed())
+		fmt.Println("could not read config file:", viper.ConfigFileUsed())
 	}
 
-	rootURI := viper.GetString("root-uri")
+	rootURI := viper.GetString("rootUri")
 	if rootURI == "" {
-		return nil, errors.New("no root-uri set")
+		return nil, errors.New("no rootUri set")
 	}
 
-	redirectURI := viper.GetString("redirect-uri")
+	redirectURI := viper.GetString("redirectUri")
 	if redirectURI == "" {
-		return nil, errors.New("no redirect-uri set")
+		return nil, errors.New("no redirectUri set")
+	}
+
+	wwwRootDir := viper.GetString("wwwRootDir")
+	if wwwRootDir == "" {
+		wwwRootDir = "www"
 	}
 
 	providers := map[string]app.Provider{}
 
-	googleConfig := viper.Sub("google")
+	googleConfig := viper.Sub("providers.google")
 	if googleConfig != nil {
 		providers["google"] = provider.NewGoogle(
 			rootURI,
-			viper.GetString("google.clientid"),
-			viper.GetString("google.clientsecret"),
-			viper.GetStringSlice("google.scopes"),
+			viper.GetString("providers.google.clientId"),
+			viper.GetString("providers.google.clientSecret"),
+			viper.GetStringSlice("providers.google.scopes"),
 		)
 	}
 
-	githubConfig := viper.Sub("github")
+	githubConfig := viper.Sub("providers.github")
 	if githubConfig != nil {
 		providers["github"] = provider.NewGithub(
 			rootURI,
-			viper.GetString("github.clientid"),
-			viper.GetString("github.clientsecret"),
-			viper.GetStringSlice("github.scopes"),
+			viper.GetString("providers.github.clientId"),
+			viper.GetString("providers.github.clientSecret"),
+			viper.GetStringSlice("providers.github.scopes"),
 		)
 	}
 
-	facebookConfig := viper.Sub("facebook")
+	facebookConfig := viper.Sub("providers.facebook")
 	if facebookConfig != nil {
 		providers["facebook"] = provider.NewFacebook(
 			rootURI,
-			viper.GetString("facebook.clientid"),
-			viper.GetString("facebook.clientsecret"),
-			viper.GetStringSlice("facebook.scopes"),
+			viper.GetString("providers.facebook.clientId"),
+			viper.GetString("providers.facebook.clientSecret"),
+			viper.GetStringSlice("providers.facebook.scopes"),
 		)
 	}
 
@@ -77,6 +82,7 @@ func Initialize(configFile string) (*app.Config, error) {
 	audience := viper.GetString("jwt.audience")
 	issuer := viper.GetString("jwt.issuer")
 	subject := viper.GetString("jwt.subject")
+	expiry := viper.GetInt("jwt.expirySeconds")
 
 	signingMethodKey := viper.GetString("jwt.signingMethod")
 	if signingMethodKey == "" {
@@ -87,7 +93,7 @@ func Initialize(configFile string) (*app.Config, error) {
 		return nil, errors.New("no valid signing method set")
 	}
 
-	publicKeyPath := viper.GetString("jwt.public-key")
+	publicKeyPath := viper.GetString("jwt.publicKey")
 	if publicKeyPath == "" {
 		publicKeyPath = "certs/public.pem"
 	}
@@ -101,7 +107,7 @@ func Initialize(configFile string) (*app.Config, error) {
 		return nil, err
 	}
 
-	privateKeyPath := viper.GetString("jwt.private-key")
+	privateKeyPath := viper.GetString("jwt.privateKey")
 	if privateKeyPath == "" {
 		privateKeyPath = "certs/private.pem"
 	}
@@ -117,11 +123,13 @@ func Initialize(configFile string) (*app.Config, error) {
 
 	return &app.Config{RootURI: rootURI,
 		RedirectURI:   redirectURI,
+		WWWRootDir:    wwwRootDir,
 		Providers:     providers,
 		SigningMethod: signingMethod,
 		PrivateRSAKey: rsaPriv,
 		PublicRSAKey:  rsaPub,
 		Audience:      audience,
 		Issuer:        issuer,
-		Subject:       subject}, nil
+		Subject:       subject,
+		ExpirySeconds: expiry}, nil
 }

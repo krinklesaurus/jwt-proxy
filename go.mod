@@ -1,4 +1,4 @@
-module github.com/krinklesaurus/jwt_proxy
+module github.com/krinklesaurus/jwt-proxy
 
 go 1.12
 

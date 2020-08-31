@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/sessions"
-	"github.com/krinklesaurus/jwt_proxy/log"
-	"github.com/krinklesaurus/jwt_proxy/util"
+	"github.com/krinklesaurus/jwt-proxy/log"
+	"github.com/krinklesaurus/jwt-proxy/util"
 )
 
 const sessionName string = "nonce-session"

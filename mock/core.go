@@ -2,7 +2,7 @@ package mock
 
 import (
 	"github.com/SermoDigital/jose/jws"
-	"github.com/krinklesaurus/jwt_proxy"
+	app "github.com/krinklesaurus/jwt-proxy"
 )
 
 func NewCore() app.CoreAuth {
@@ -17,8 +17,8 @@ func (c *core) PublicKey() (*app.PublicKey, error) {
 		Keys: []string{"MOCK_PUBLIC_KEY"}}, nil
 }
 
-func (c *core) Token(provider string, code string) (*app.Token, error) {
-	return &app.Token{}, nil
+func (c *core) Token(provider string, code string) (*app.TokenInfo, error) {
+	return &app.TokenInfo{}, nil
 }
 
 func (c *core) JwtToken(jws.Claims) ([]byte, error) {
@@ -26,7 +26,7 @@ func (c *core) JwtToken(jws.Claims) ([]byte, error) {
 	return data, nil
 }
 
-func (c *core) Claims(token *app.Token) jws.Claims {
+func (c *core) Claims(token *app.TokenInfo) jws.Claims {
 	return jws.Claims{}
 }
 
@@ -42,8 +42,8 @@ func (c *core) Providers() []string {
 	return []string{"PROVIDER_1", "PROVIDER_2"}
 }
 
-func (c *core) Auth(username string, password string) (*app.Token, error) {
-	return &app.Token{}, nil
+func (c *core) Auth(username string, password string) (*app.TokenInfo, error) {
+	return &app.TokenInfo{}, nil
 }
 
 func (c *core) LocalEnabled() bool {

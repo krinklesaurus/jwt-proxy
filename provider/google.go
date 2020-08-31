@@ -7,8 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/krinklesaurus/jwt_proxy"
-	"github.com/krinklesaurus/jwt_proxy/log"
+	app "github.com/krinklesaurus/jwt-proxy"
+	"github.com/krinklesaurus/jwt-proxy/log"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -21,19 +21,26 @@ func NewGoogle(rootURI string, clientID string, clientSecret string, scopes []st
 		ClientSecret: clientSecret,
 		Scopes:       scopes,
 		Endpoint:     google.Endpoint,
-	}}
+	},
+		clientID: clientID,
+	}
 }
 
 type GoogleProvider struct {
-	conf  oauth2.Config
-	token *oauth2.Token
+	conf     oauth2.Config
+	token    *oauth2.Token
+	clientID string
 }
 
 func (g *GoogleProvider) AuthCodeURL(state string) string {
 	return g.conf.AuthCodeURL(state)
 }
 
-func (g *GoogleProvider) UniqueUserID() (string, error) {
+func (g *GoogleProvider) ClientID() string {
+	return g.clientID
+}
+
+func (g *GoogleProvider) User() (string, error) {
 	url := fmt.Sprintf("https://www.googleapis.com/oauth2/v2/userinfo?access_token=%s", g.token.AccessToken)
 
 	response, err := http.Get(url)

@@ -23,16 +23,14 @@ RUN adduser \
     --uid "${UID}" \
     "${USER}"
 
-WORKDIR /jwt_proxy
+WORKDIR /jwt-proxy
 COPY . .
-
-RUN ls -la
 
 # Fetch dependencies.
 RUN go mod download &&\
     go mod verify
 
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o jwt_proxy ./cmd
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o jwt-proxy ./cmd
 
 
 ############################
@@ -46,16 +44,16 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /etc/group /etc/group
 
-WORKDIR /jwt_proxy
+WORKDIR /jwt-proxy
 
-COPY --from=builder /jwt_proxy/jwt_proxy .
-COPY --from=builder /jwt_proxy/certs certs
-COPY --from=builder /jwt_proxy/www www
-COPY --from=builder /jwt_proxy/config.yml config.yml
+COPY --from=builder /jwt-proxy/jwt-proxy .
+COPY --from=builder /jwt-proxy/certs certs
+COPY --from=builder /jwt-proxy/www www
+COPY --from=builder /jwt-proxy/config.yml config.yml
 
 # Use an unprivileged user.
 USER appuser:appuser
 
-ENTRYPOINT ["./jwt_proxy"]
+ENTRYPOINT ["./jwt-proxy"]
 
 EXPOSE 8080

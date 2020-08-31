@@ -3,7 +3,7 @@ package mock
 import (
 	"fmt"
 
-	"github.com/krinklesaurus/jwt_proxy"
+	"github.com/krinklesaurus/jwt-proxy"
 )
 
 func NewUserservice() app.UserService {

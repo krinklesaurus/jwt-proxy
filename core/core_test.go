@@ -5,8 +5,8 @@ import (
 	"encoding/pem"
 	"testing"
 
-	"github.com/krinklesaurus/jwt_proxy"
-	"github.com/krinklesaurus/jwt_proxy/mock"
+	"github.com/krinklesaurus/jwt-proxy"
+	"github.com/krinklesaurus/jwt-proxy/mock"
 	"github.com/stretchr/testify/assert"
 )
 

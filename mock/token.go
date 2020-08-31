@@ -1,6 +1,6 @@
 package mock
 
-import "github.com/krinklesaurus/jwt_proxy"
+import "github.com/krinklesaurus/jwt-proxy"
 
 func NewTokenizer() app.Tokenizer {
 	return &tokenizer{}

@@ -11,10 +11,10 @@ import (
 	"time"
 
 	"github.com/SermoDigital/jose/jws"
-	"github.com/krinklesaurus/jwt_proxy/config"
-	"github.com/krinklesaurus/jwt_proxy/core"
-	"github.com/krinklesaurus/jwt_proxy/log"
-	"github.com/krinklesaurus/jwt_proxy/user"
+	"github.com/krinklesaurus/jwt-proxy/config"
+	"github.com/krinklesaurus/jwt-proxy/core"
+	"github.com/krinklesaurus/jwt-proxy/log"
+	"github.com/krinklesaurus/jwt-proxy/user"
 	uuid "github.com/satori/go.uuid"
 )
 

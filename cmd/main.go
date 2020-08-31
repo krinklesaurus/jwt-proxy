@@ -5,18 +5,18 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/krinklesaurus/jwt_proxy/config"
-	"github.com/krinklesaurus/jwt_proxy/core"
-	"github.com/krinklesaurus/jwt_proxy/handler"
-	"github.com/krinklesaurus/jwt_proxy/log"
-	"github.com/krinklesaurus/jwt_proxy/user"
+	"github.com/krinklesaurus/jwt-proxy/config"
+	"github.com/krinklesaurus/jwt-proxy/core"
+	"github.com/krinklesaurus/jwt-proxy/handler"
+	"github.com/krinklesaurus/jwt-proxy/log"
+	"github.com/krinklesaurus/jwt-proxy/user"
 	negronilogrus "github.com/meatballhat/negroni-logrus"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/negroni"
 )
 
 func main() {
-	log.WithLevel(logrus.InfoLevel)
+	log.WithLevel(logrus.DebugLevel)
 
 	configPtr := flag.String("config", "config.yml", "configuration file")
 
@@ -40,7 +40,7 @@ func main() {
 		log.Errorf("error initializing session store %v", err)
 		return
 	}
-	handler, err := handler.New(core, store)
+	handler, err := handler.New(config, core, store)
 	if err != nil {
 		log.Errorf("error initializing handler store %v", err)
 		return
@@ -52,6 +52,7 @@ func main() {
 	r.HandleFunc("/login/{provider}", handler.ProviderLoginHandler)
 	r.HandleFunc("/callback/{provider}", handler.CallbackHandler)
 	r.HandleFunc("/pubkey", handler.PublicKeyHandler)
+	r.HandleFunc("/token", handler.VerifyToken)
 
 	n := negroni.New()
 	n.Use(negronilogrus.NewMiddleware())

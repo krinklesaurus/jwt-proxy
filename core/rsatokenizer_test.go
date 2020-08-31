@@ -7,8 +7,8 @@ import (
 
 	"github.com/SermoDigital/jose/crypto"
 	"github.com/SermoDigital/jose/jws"
-	"github.com/krinklesaurus/jwt_proxy"
-	"github.com/krinklesaurus/jwt_proxy/mock"
+	"github.com/krinklesaurus/jwt-proxy"
+	"github.com/krinklesaurus/jwt-proxy/mock"
 	"github.com/stretchr/testify/assert"
 )
 

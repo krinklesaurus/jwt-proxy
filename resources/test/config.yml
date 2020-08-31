@@ -1,24 +1,25 @@
-root-uri: http://localhost:8080
-redirect-uri: http://localhost:8080/callback
+rootUri: http://localhost:8080
+redirectUri: http://localhost:8080/callback
 jwt:
   signingMethod: RS256
-  public-key: ../certs/public.pem
-  private-key: ../certs/private.pem
+  publicKey: ../certs/public.pem
+  privateKey: ../certs/private.pem
   audience: your-audience
   issuer: you
   subject: your-subject
-google:
-  clientid: your-google-client-id
-  clientsecret: your-google-secret
-  scopes:
-    - profile
-github:
-  clientid: your-github-client-id
-  clientsecret: your-github-secret
-  scopes:
-    - user
-facebook:
-  clientid: your-facebook-client-id
-  clientsecret: your-facebook-secret
-  scopes:
-    - public_profile
+providers:
+  google:
+    clientId: your-google-client-id
+    clientSecret: your-google-secret
+    scopes:
+      - profile
+  github:
+    clientId: your-github-client-id
+    clientSecret: your-github-secret
+    scopes:
+      - user
+  facebook:
+    clientId: your-facebook-client-id
+    clientSecret: your-facebook-secret
+    scopes:
+      - public_profile

@@ -1,5 +1,5 @@
 SOURCEDIR = .
-NAME ?= jwt_proxy
+NAME ?= jwt-proxy
 VERSION=$(shell git rev-parse --short HEAD)
 
 default: clean build
@@ -11,11 +11,12 @@ clean:
 .PHONY: test
 test:
 	golint ./... &&\
-		go test -v -race -cover ./...
+		go test -v -race -cover -coverprofile cover.out ./... &&\
+		go tool cover -html=cover.out -o cover.html
 
 .PHONY: run
 run:
-	go run main.go
+	go run cmd/main.go
 
 .PHONY: build
 build:

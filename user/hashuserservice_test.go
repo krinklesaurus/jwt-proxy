@@ -7,13 +7,13 @@ const hashedUserID string = "29e4c1b25d94c0379dab71eb2138f2a3c5171bd0fbfbc9f1ab2
 func TestCorrectHashedUserID(t *testing.T) {
 	us := &HashUserService{}
 
-	user, err := us.UniqueUser("someProvider", "someProviderUserId")
+	userID, err := us.UniqueUser("someProvider", "someProviderUserId")
 	if err != nil {
 		t.Error(err)
 	}
 
-	if user.ID != hashedUserID {
-		t.Errorf("user.ID %s and hashedUserID %s do not match", user.ID, hashedUserID)
+	if userID != hashedUserID {
+		t.Errorf("userID %s and hashedUserID %s do not match", userID, hashedUserID)
 	}
 }
 

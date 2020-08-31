@@ -23,13 +23,13 @@ var SigningMethods = map[string]crypto.SigningMethod{
 	"ES512": crypto.SigningMethodES512,
 }
 
-// Token wraps oauth.Token and adds two additional fields:
-// ProviderID is the ID of the OAuth provider, e.g. github or facebook
-// UserID is the user's provider's ID, e.g. the user's facebook ID
-type Token struct {
+// TokenInfo wraps oauth.Token and adds two additional fields:
+// Provider is the OAuth provider, e.g. github or facebook
+// UserInfo is the map of user info claims from the provider
+type TokenInfo struct {
 	oauth2.Token
-	ProviderID string `json:"provider"`
-	UserID     string `json:"user"`
+	Provider Provider
+	User     string
 }
 
 // PublicKey is a struct for a list of keys
@@ -37,13 +37,13 @@ type PublicKey struct {
 	Keys []string
 }
 
-// CoreAuth is the central interface of jwt_proxy. It provides all function necessary
+// CoreAuth is the central interface of jwt-proxy. It provides all function necessary
 // for handling the redirect to the provider, process the login, enrich the provider's
 // token with some custom parameters and return the JWT token to the callback URI.
 type CoreAuth interface {
 	PublicKey() (*PublicKey, error)
-	Token(provider string, code string) (*Token, error)
-	Claims(token *Token) jws.Claims
+	TokenInfo(provider string, code string) (*TokenInfo, error)
+	Claims(token *TokenInfo) (jws.Claims, error)
 	JwtToken(jws.Claims) ([]byte, error)
 	RedirectURI() string
 	AuthURL(provider string, state string) string
@@ -56,11 +56,6 @@ type NonceStore interface {
 	GetAndRemove(r *http.Request) (string, error)
 }
 
-// User is a struct for representing a user
-type User struct {
-	ID string
-}
-
 // UserService provides a function for creating a user from the given provider and providerUserID.
 // The created user contains the global unique user ID that is used within your environment.
 // user/hashuserservice is the most basic way to create a unique user by simply
@@ -68,17 +63,18 @@ type User struct {
 // the user id from a DB using the provider and providerUserID as a key or just
 // concatenate both strings.
 type UserService interface {
-	UniqueUser(provider string, providerUserID string) (User, error)
+	UniqueUser(provider string, providerUserID string) (string, error)
 }
 
 // Provider is the interface every OAuth provider has to fulfill for being
-// used within jwt_proxy
+// used within jwt-proxy
 type Provider interface {
 	AuthCodeURL(state string) string
-	UniqueUserID() (string, error)
+	User() (string, error)
 	Exchange(ctx context.Context, code string) (*oauth2.Token, error)
 	String() string
 	Name() string
+	ClientID() string
 }
 
 // Tokenizer creates a byte array from an input map.
@@ -90,6 +86,7 @@ type Tokenizer interface {
 type Config struct {
 	RootURI       string
 	RedirectURI   string
+	WWWRootDir    string
 	Providers     map[string]Provider
 	SigningMethod crypto.SigningMethod
 	PrivateRSAKey *rsa.PrivateKey
@@ -98,13 +95,14 @@ type Config struct {
 	Issuer        string
 	Subject       string
 	Password      string
+	ExpirySeconds int
 }
 
 // String is a helping toString function for the config for debugging
 func (c *Config) String() string {
 	providersString := ""
 	for _, p := range c.Providers {
-		providersString = providersString + fmt.Sprintf(" %s,", p.Name())
+		providersString = providersString + fmt.Sprintf(" %s with clientId %s ,", p.Name(), p.ClientID())
 	}
 	return fmt.Sprintf("rootURI: %s, redirectURI: %s, Audience: %s, Issuer: %s, Subject: %s, Providers: %s", c.RootURI, c.RedirectURI, c.Audience, c.Issuer, c.Subject, providersString)
 }

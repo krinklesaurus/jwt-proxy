@@ -38,44 +38,44 @@ func ExampleInitialize() {
 func ExampleInitialize_envvars() {
 	configPath := "../resources/test/config.yml"
 
-	os.Setenv("ROOT-URI", "http://envvar:8080")
-	os.Setenv("REDIRECT-URI", "http://envvar:8080/callback")
+	os.Setenv("ROOTURI", "http://envvar:8080")
+	os.Setenv("REDIRECTURI", "http://envvar:8080/callback")
 	os.Setenv("SIGNINGMETHOD", "RS256")
 	os.Setenv("JWT_AUDIENCE", "envar-audience")
 	os.Setenv("JWT_ISSUER", "envar-issuer")
 	os.Setenv("JWT_SUBJECT", "envar-subject")
 
-	os.Setenv("GOOGLE_CLIENTID", "envvar-google-client-id")
-	os.Setenv("GOOGLE_CLIENTSECRET", "envvar-google-client-secret")
-	os.Setenv("GOOGLE_SCOPES", "envvar-go-scope-1 envvar-go-scope-2")
+	os.Setenv("PROVIDERS_GOOGLE_CLIENTID", "envvar-google-client-id")
+	os.Setenv("PROVIDERS_GOOGLE_CLIENTSECRET", "envvar-google-client-secret")
+	os.Setenv("PROVIDERS_GOOGLE_SCOPES", "envvar-go-scope-1 envvar-go-scope-2")
 
-	os.Setenv("FACEBOOK_CLIENTID", "envvar-facebook-client-id")
-	os.Setenv("FACEBOOK_CLIENTSECRET", "envvar-facebook-client-secret")
-	os.Setenv("FACEBOOK_SCOPES", "envvar-fb-scope-1 envvar-fb-scope-2")
+	os.Setenv("PROVIDERS_FACEBOOK_CLIENTID", "envvar-facebook-client-id")
+	os.Setenv("PROVIDERS_FACEBOOK_CLIENTSECRET", "envvar-facebook-client-secret")
+	os.Setenv("PROVIDERS_FACEBOOK_SCOPES", "envvar-fb-scope-1 envvar-fb-scope-2")
 
-	os.Setenv("GITHUB_CLIENTID", "envvar-github-client-id")
-	os.Setenv("GITHUB_CLIENTSECRET", "envvar-github-client-secret")
-	os.Setenv("GITHUB_SCOPES", "envvar-git-scope-1 envvar-git-scope-2")
+	os.Setenv("PROVIDERS_GITHUB_CLIENTID", "envvar-github-client-id")
+	os.Setenv("PROVIDERS_GITHUB_CLIENTSECRET", "envvar-github-client-secret")
+	os.Setenv("PROVIDERS_GITHUB_SCOPES", "envvar-git-scope-1 envvar-git-scope-2")
 
 	defer func() {
-		os.Unsetenv("ROOT_URI")
-		os.Unsetenv("REDIRECT_URI")
+		os.Unsetenv("ROOTURI")
+		os.Unsetenv("REDIRECTURI")
 		os.Unsetenv("SIGNINGMETHOD")
 		os.Unsetenv("JWT_AUDIENCE")
 		os.Unsetenv("JWT_ISSUER")
 		os.Unsetenv("JWT_SUBJECT")
 
-		os.Unsetenv("GOOGLE_CLIENTID")
-		os.Unsetenv("GOOGLE_CLIENTSECRET")
-		os.Unsetenv("GOOGLE_SCOPES")
+		os.Unsetenv("PROVIDERS_GOOGLE_CLIENTID")
+		os.Unsetenv("PROVIDERS_GOOGLE_CLIENTSECRET")
+		os.Unsetenv("PROVIDERS_GOOGLE_SCOPES")
 
-		os.Unsetenv("FACEBOOK_CLIENTID")
-		os.Unsetenv("FACEBOOK_CLIENTSECRET")
-		os.Unsetenv("FACEBOOK_SCOPES")
+		os.Unsetenv("PROVIDERS_FACEBOOK_CLIENTID")
+		os.Unsetenv("PROVIDERS_FACEBOOK_CLIENTSECRET")
+		os.Unsetenv("PROVIDERS_FACEBOOK_SCOPES")
 
-		os.Unsetenv("GITHUB_CLIENTID")
-		os.Unsetenv("GITHUB_CLIENTSECRET")
-		os.Unsetenv("GITHUB_SCOPES")
+		os.Unsetenv("PROVIDERS_GITHUB_CLIENTID")
+		os.Unsetenv("PROVIDERS_GITHUB_CLIENTSECRET")
+		os.Unsetenv("PROVIDERS_GITHUB_SCOPES")
 	}()
 
 	cfg, err := Initialize(configPath)

@@ -7,8 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/krinklesaurus/jwt_proxy"
-	"github.com/krinklesaurus/jwt_proxy/log"
+	app "github.com/krinklesaurus/jwt-proxy"
+	"github.com/krinklesaurus/jwt-proxy/log"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/facebook"
@@ -23,19 +23,25 @@ func NewFacebook(rootURI string, clientID string, clientSecret string, scopes []
 			Scopes:       scopes,
 			Endpoint:     facebook.Endpoint,
 		},
+		clientID: clientID,
 	}
 }
 
 type FacebookProvider struct {
-	conf  oauth2.Config
-	token *oauth2.Token
+	conf     oauth2.Config
+	token    *oauth2.Token
+	clientID string
 }
 
 func (f *FacebookProvider) AuthCodeURL(state string) string {
 	return f.conf.AuthCodeURL(state)
 }
 
-func (f *FacebookProvider) UniqueUserID() (string, error) {
+func (f *FacebookProvider) ClientID() string {
+	return f.clientID
+}
+
+func (f *FacebookProvider) User() (string, error) {
 	url := fmt.Sprintf("https://graph.facebook.com/v2.7/me?access_token=%s", f.token.AccessToken)
 
 	response, err := http.Get(url)

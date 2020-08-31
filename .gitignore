@@ -28,6 +28,6 @@ vendor/
 certs/private.pem
 certs/public.pem
 luzr.yml
-jwt_proxy
+jwt-proxy
 real-config.yml
 cover.*

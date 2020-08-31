@@ -5,23 +5,32 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/SermoDigital/jose/jws"
+
 	"github.com/alecthomas/template"
 	"github.com/gorilla/mux"
-	app "github.com/krinklesaurus/jwt_proxy"
-	"github.com/krinklesaurus/jwt_proxy/log"
+	app "github.com/krinklesaurus/jwt-proxy"
+	"github.com/krinklesaurus/jwt-proxy/log"
 )
 
-func New(core app.CoreAuth, nonceStore app.NonceStore) (*Handler, error) {
-	return &Handler{core: core, nonceStore: nonceStore}, nil
+func New(config *app.Config, core app.CoreAuth, nonceStore app.NonceStore) (*Handler, error) {
+	return &Handler{config: config, core: core, nonceStore: nonceStore}, nil
 }
 
 type Handler struct {
+	config     *app.Config
 	core       app.CoreAuth
 	nonceStore app.NonceStore
 }
 
-func (handler *Handler) jwtHandler(w http.ResponseWriter, r *http.Request, token *app.Token) {
-	claims := handler.core.Claims(token)
+func (handler *Handler) jwtHandler(w http.ResponseWriter, r *http.Request, token *app.TokenInfo) {
+	claims, err := handler.core.Claims(token)
+	if err != nil {
+		log.Errorf("error %s", err.Error())
+		http.Error(w, "Sorry, some unknown error occurred", http.StatusInternalServerError)
+		return
+	}
+
 	tokenByte, err := handler.core.JwtToken(claims)
 	if err != nil {
 		log.Errorf("error %s", err.Error())
@@ -42,8 +51,8 @@ func (handler *Handler) HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 func (handler *Handler) CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	provider := vars["provider"]
-	if provider == "" {
+	providerName := vars["provider"]
+	if providerName == "" {
 		log.Errorf("missing provider param")
 		http.Error(w, "Sorry, some unknown error occurred", http.StatusInternalServerError)
 		return
@@ -52,6 +61,8 @@ func (handler *Handler) CallbackHandler(w http.ResponseWriter, r *http.Request) 
 	queryParams := r.URL.Query()
 	code := queryParams.Get("code")
 	state := queryParams.Get("state")
+
+	log.Debugf("received code %s and state %s", code, state)
 
 	nonce, err := handler.nonceStore.GetAndRemove(r)
 	if err != nil {
@@ -66,7 +77,7 @@ func (handler *Handler) CallbackHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	token, err := handler.core.Token(provider, code)
+	token, err := handler.core.TokenInfo(providerName, code)
 	if err != nil {
 		log.Errorf("error retrieving token %s", err.Error())
 		http.Error(w, "Sorry, some unknown error occurred", http.StatusInternalServerError)
@@ -77,9 +88,9 @@ func (handler *Handler) CallbackHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (handler *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
-	loginTemplate, err := template.ParseFiles("www/login.html")
+	loginTemplate, err := template.ParseFiles(fmt.Sprintf("%s/%s", handler.config.WWWRootDir, "login.html"))
 	if err != nil {
-		log.Errorf("error parsing www/login.html %s", err.Error())
+		log.Errorf("error parsing %s, error is %v", fmt.Sprintf("%s/%s", handler.config.WWWRootDir, "login.html"), err.Error())
 		http.Error(w, "Sorry, some unknown error occurred", http.StatusInternalServerError)
 		return
 	}
@@ -118,6 +129,7 @@ func (handler *Handler) ProviderLoginHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	authCodeURL := handler.core.AuthURL(provider, state)
+	log.Infof("redirecting to %s", authCodeURL)
 	http.Redirect(w, r, authCodeURL, 302)
 }
 
@@ -133,4 +145,20 @@ func (handler *Handler) PublicKeyHandler(w http.ResponseWriter, r *http.Request)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(json)
+}
+
+func (handler *Handler) VerifyToken(w http.ResponseWriter, r *http.Request) {
+	jwt, err := jws.ParseJWTFromRequest(r)
+	if err != nil {
+		log.Errorf("no jwt found: %v", err)
+		http.Error(w, "no jwt found", http.StatusUnauthorized)
+		return
+	}
+	err = jwt.Validate(handler.config.PublicRSAKey, handler.config.SigningMethod)
+	if err != nil {
+		log.Errorf("no valid jwt: %v", err)
+		http.Error(w, "no valid jwt", http.StatusUnauthorized)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }

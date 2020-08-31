@@ -9,15 +9,15 @@ import (
 func TestCorrectPlainUserID(t *testing.T) {
 	us := &PlainUserService{}
 
-	user, err := us.UniqueUser("someProvider", "someProviderUserId")
+	userID, err := us.UniqueUser("someProvider", "someProviderUserId")
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equal(t, "someProvider:someProviderUserId", user.ID)
+	assert.Equal(t, "someProvider:someProviderUserId", userID)
 
-	user, err = us.UniqueUser("somePro:vider", "someProviderUserId")
+	userID, err = us.UniqueUser("somePro:vider", "someProviderUserId")
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equal(t, "somePro%3Avider:someProviderUserId", user.ID)
+	assert.Equal(t, "somePro%3Avider:someProviderUserId", userID)
 }

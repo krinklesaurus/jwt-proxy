@@ -3,7 +3,7 @@ package mock
 import (
 	"net/http"
 
-	"github.com/krinklesaurus/jwt_proxy"
+	"github.com/krinklesaurus/jwt-proxy"
 )
 
 func NewSessionStore() app.NonceStore {

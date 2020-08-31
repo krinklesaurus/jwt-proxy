@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/krinklesaurus/jwt_proxy"
+	app "github.com/krinklesaurus/jwt-proxy"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 )
@@ -21,8 +21,12 @@ func (m *provider) AuthCodeURL(state string) string {
 	return "MOCK_AUTH_CODE"
 }
 
-func (m *provider) UniqueUserID() (string, error) {
-	return "MOCK_USER_ID", nil
+func (m *provider) UserInfo() (map[string]interface{}, string, error) {
+	return nil, "MOCK_USER_ID", nil
+}
+
+func (m *provider) ClientID() string {
+	return "CLIENT_ID"
 }
 
 func (m *provider) Exchange(ctx context.Context, code string) (*oauth2.Token, error) {
