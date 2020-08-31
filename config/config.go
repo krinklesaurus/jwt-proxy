@@ -24,7 +24,8 @@ func Initialize(configFile string) (*app.Config, error) {
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
-	if err := viper.ReadInConfig(); err != nil {
+	var err error
+	if err = viper.ReadInConfig(); err != nil {
 		fmt.Println("could not read config file:", viper.ConfigFileUsed())
 	}
 
@@ -93,29 +94,41 @@ func Initialize(configFile string) (*app.Config, error) {
 		return nil, errors.New("no valid signing method set")
 	}
 
-	publicKeyPath := viper.GetString("jwt.publicKey")
-	if publicKeyPath == "" {
-		publicKeyPath = "certs/public.pem"
+	var publicKeyData []byte
+	publicKey := viper.GetString("jwt.publicKey")
+	if publicKey == "" {
+		publicKeyPath := viper.GetString("jwt.publicKeyPath")
+		if publicKeyPath == "" {
+			publicKeyPath = "certs/public.pem"
+		}
+		publicKeyData, err = ioutil.ReadFile(publicKeyPath)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		publicKeyData = []byte(publicKey)
 	}
-	derBytes, err := ioutil.ReadFile(publicKeyPath)
-	if err != nil {
-		return nil, err
-	}
-	block, _ := pem.Decode(derBytes)
+	block, _ := pem.Decode(publicKeyData)
 	rsaPub, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
 		return nil, err
 	}
 
-	privateKeyPath := viper.GetString("jwt.privateKey")
-	if privateKeyPath == "" {
-		privateKeyPath = "certs/private.pem"
+	var privateKeyData []byte
+	privateKey := viper.GetString("jwt.privateKey")
+	if privateKey == "" {
+		privateKeyPath := viper.GetString("jwt.privateKeyPath")
+		if privateKeyPath == "" {
+			privateKeyPath = "certs/private.pem"
+		}
+		privateKeyData, err = ioutil.ReadFile(privateKeyPath)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		privateKeyData = []byte(privateKey)
 	}
-	der, err := ioutil.ReadFile(privateKeyPath)
-	if err != nil {
-		return nil, err
-	}
-	block2, _ := pem.Decode(der)
+	block2, _ := pem.Decode(privateKeyData)
 	rsaPriv, err := x509.ParsePKCS1PrivateKey(block2.Bytes)
 	if err != nil {
 		return nil, err

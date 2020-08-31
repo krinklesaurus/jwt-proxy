@@ -21,3 +21,9 @@ run:
 .PHONY: build
 build:
 	docker build -t ${NAME}:latest -t ${NAME}:${VERSION} .
+
+.PHONY: deploy
+deploy:
+	docker build -t krinklesaurus/${NAME}:latest -t krinklesaurus/${NAME}:${VERSION} .	&&\
+	docker push krinklesaurus/${NAME}:latest &&\
+	docker push krinklesaurus/${NAME}:${VERSION}
