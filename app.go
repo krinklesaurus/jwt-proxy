@@ -102,7 +102,7 @@ type Config struct {
 func (c *Config) String() string {
 	providersString := ""
 	for _, p := range c.Providers {
-		providersString = providersString + fmt.Sprintf(" %s with clientId %s ,", p.Name(), p.ClientID())
+		providersString = providersString + fmt.Sprintf("%s with clientId %s, ", p.Name(), p.ClientID())
 	}
 	return fmt.Sprintf("rootURI: %s, redirectURI: %s, Audience: %s, Issuer: %s, Subject: %s, Providers: %s", c.RootURI, c.RedirectURI, c.Audience, c.Issuer, c.Subject, providersString)
 }

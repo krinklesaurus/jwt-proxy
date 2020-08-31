@@ -31,3 +31,4 @@ luzr.yml
 jwt-proxy
 real-config.yml
 cover.*
+cmd/__debug_bin

@@ -26,7 +26,7 @@ func (store *HTTPSessionStore) CreateNonce(w http.ResponseWriter, r *http.Reques
 	log.Debugf("get sessions store with name %s", sessionName)
 	session, err := store.sessionStore.Get(r, sessionName)
 	if err != nil {
-		log.Errorf("error getting session: %v", err)
+		log.Warnf("error getting session: %v", err)
 	}
 	log.Debugf("set session key %s to %s", sessionNonce, nonce)
 	session.Values[sessionNonce] = nonce

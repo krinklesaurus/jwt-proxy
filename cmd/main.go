@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	log.WithLevel(logrus.DebugLevel)
+	log.WithLevel(logrus.InfoLevel)
 
 	configPtr := flag.String("config", "config.yml", "configuration file")
 
