@@ -3,11 +3,9 @@ module github.com/krinklesaurus/jwt-proxy
 go 1.12
 
 require (
-	cloud.google.com/go v0.10.0 // indirect
 	github.com/SermoDigital/jose v0.0.0-20161205224733-f6df55f235c2
 	github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc
 	github.com/fsnotify/fsnotify v1.4.2 // indirect
-	github.com/golang/protobuf v0.0.0-20170712042213-0a4f71a498b7 // indirect
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/mux v1.6.2
 	github.com/gorilla/securecookie v0.0.0-20160422134519-667fe4e3466a // indirect
@@ -29,12 +27,10 @@ require (
 	github.com/stretchr/testify v1.3.0
 	github.com/urfave/negroni v1.0.0
 	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
-	golang.org/x/net v0.0.0-20170719084000-02ac38e2528f
-	golang.org/x/oauth2 v0.0.0-20170719200132-b53b38ad8a64
+	golang.org/x/net v0.0.0-20190108225652-1e06a53dbb7e
+	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58 // indirect
 	golang.org/x/sys v0.0.0-20190322080309-f49334f85ddc // indirect
-	golang.org/x/text v0.0.0-20170714085652-836efe42bb4a // indirect
-	google.golang.org/appengine v1.0.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	gopkg.in/yaml.v2 v2.2.2 // indirect
 )
