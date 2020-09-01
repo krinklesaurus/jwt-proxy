@@ -10,8 +10,7 @@ require (
 	github.com/golang/protobuf v0.0.0-20170712042213-0a4f71a498b7 // indirect
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/mux v1.6.2
-	github.com/gorilla/securecookie v0.0.0-20160422134519-667fe4e3466a // indirect
-	github.com/gorilla/sessions v0.0.0-20160922145804-ca9ada445741
+	github.com/gorilla/sessions v1.2.1
 	github.com/hashicorp/hcl v0.0.0-20170509225359-392dba7d905e // indirect
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/magiconair/properties v1.7.3 // indirect
