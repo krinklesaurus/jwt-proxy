@@ -9,7 +9,7 @@ require (
 	github.com/fsnotify/fsnotify v1.4.2 // indirect
 	github.com/golang/protobuf v0.0.0-20170712042213-0a4f71a498b7 // indirect
 	github.com/gorilla/context v1.1.1 // indirect
-	github.com/gorilla/mux v1.6.2
+	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/securecookie v0.0.0-20160422134519-667fe4e3466a // indirect
 	github.com/gorilla/sessions v0.0.0-20160922145804-ca9ada445741
 	github.com/hashicorp/hcl v0.0.0-20170509225359-392dba7d905e // indirect
