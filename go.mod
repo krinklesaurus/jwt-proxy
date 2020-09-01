@@ -27,7 +27,7 @@ require (
 	github.com/spf13/pflag v1.0.0 // indirect
 	github.com/spf13/viper v0.0.0-20170619124313-c1de95864d73
 	github.com/stretchr/testify v1.3.0
-	github.com/urfave/negroni v1.0.0
+	github.com/urfave/negroni/v2/v2 v2.0.2
 	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
 	golang.org/x/net v0.0.0-20170719084000-02ac38e2528f
 	golang.org/x/oauth2 v0.0.0-20170719200132-b53b38ad8a64
