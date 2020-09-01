@@ -12,7 +12,7 @@ import (
 type HashUserService struct {
 }
 
-func (us *HashUserService) UniqueUser(provider string, providerUserID string) (string, error) {
+func (us HashUserService) UniqueUser(provider string, providerUserID string) (string, error) {
 	hash := sha256.New()
 	hash.Write([]byte(provider + ":" + providerUserID))
 	hashedUserID := fmt.Sprintf("%x", hash.Sum(nil))
@@ -22,7 +22,7 @@ func (us *HashUserService) UniqueUser(provider string, providerUserID string) (s
 	return hashedUserID, nil
 }
 
-func (us *HashUserService) LoginUser(username string, plainPassword string) error {
+func (us HashUserService) LoginUser(username string, plainPassword string) error {
 	testPassword, err := bcrypt.GenerateFromPassword([]byte("tester"), bcrypt.DefaultCost)
 
 	if err != nil {

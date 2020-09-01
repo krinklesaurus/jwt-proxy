@@ -30,7 +30,7 @@ COPY . .
 RUN go mod download &&\
     go mod verify
 
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o jwt-proxy ./cmd
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o jwt-proxy .
 
 
 ############################

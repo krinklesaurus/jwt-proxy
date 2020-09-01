@@ -1,9 +1,9 @@
 rootUri: http://localhost:8080
-redirectUri: http://localhost:8080/callback
+redirectUri: http://localhost:8080/jwt-proxy/callback
 wwwRootDir: www
 jwt:
-  publicKeyPath: certs/public.pem
-  privateKeyPath: certs/private.pem
+  publicRSAKeyPath: certs/public.pem
+  privateRSAKeyPath: certs/private.pem
   signingMethod: RS256
   audience: your-audience
   subject: your-subject

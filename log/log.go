@@ -6,7 +6,6 @@ import (
 
 var logger = logrus.StandardLogger()
 
-// Log simply overlays logger.Log for decoupling
 type Log interface {
 	Debugf(format string, args ...interface{})
 	Infof(format string, args ...interface{})

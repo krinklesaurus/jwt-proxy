@@ -5,25 +5,62 @@ import (
 	"encoding/pem"
 	"time"
 
+	"github.com/SermoDigital/jose/crypto"
 	"github.com/SermoDigital/jose/jws"
-	app "github.com/krinklesaurus/jwt-proxy"
+	"github.com/krinklesaurus/jwt-proxy/config"
 	"github.com/krinklesaurus/jwt-proxy/log"
+	"github.com/krinklesaurus/jwt-proxy/provider"
+	"github.com/krinklesaurus/jwt-proxy/user"
 	"golang.org/x/oauth2"
 )
 
-func New(config *app.Config, tokenizer app.Tokenizer, userService app.UserService) *Core {
-	tokenStore := map[string]*app.TokenInfo{}
+var SigningMethods = map[string]crypto.SigningMethod{
+	"RS256": crypto.SigningMethodRS256,
+	"RS384": crypto.SigningMethodRS384,
+	"RS512": crypto.SigningMethodRS512,
+	"HS256": crypto.SigningMethodHS256,
+	"HS384": crypto.SigningMethodHS384,
+	"HS512": crypto.SigningMethodHS512,
+	"ES256": crypto.SigningMethodES256,
+	"ES384": crypto.SigningMethodES384,
+	"ES512": crypto.SigningMethodES512,
+}
+
+// CoreAuth is the central interface of jwt-proxy. It provides all function necessary
+// for handling the redirect to the provider, process the login, enrich the provider's
+// token with some custom parameters and return the JWT token to the callback URI.
+type CoreAuth interface {
+	PublicKeys() ([]string, error)
+	GenTokenInfo(provider string, code string) (*TokenInfo, error)
+	Claims(token *TokenInfo) (jws.Claims, error)
+	JwtToken(jws.Claims) ([]byte, error)
+	RedirectURI() string
+	AuthURL(provider string, state string) string
+	Providers() []string
+}
+
+// TokenInfo wraps oauth.Token and adds two additional fields:
+// Provider is the OAuth provider, e.g. github or facebook
+// UserInfo is the map of user info claims from the provider
+type TokenInfo struct {
+	oauth2.Token
+	Provider provider.Provider
+	User     string
+}
+
+func New(config *config.Config, tokenizer Tokenizer, userService user.UserService) *Core {
+	tokenStore := map[string]*TokenInfo{}
 	return &Core{Config: config, userService: userService, tokenStore: tokenStore, Tokenizer: tokenizer}
 }
 
 type Core struct {
-	Config      *app.Config
-	userService app.UserService
-	tokenStore  map[string]*app.TokenInfo
-	Tokenizer   app.Tokenizer
+	Config      *config.Config
+	userService user.UserService
+	tokenStore  map[string]*TokenInfo
+	Tokenizer   Tokenizer
 }
 
-func (c *Core) PublicKey() (*app.PublicKey, error) {
+func (c *Core) PublicKeys() ([]string, error) {
 	publicKey := c.Config.PrivateRSAKey.PublicKey
 	publicKeyDer, err := x509.MarshalPKIXPublicKey(&publicKey)
 	if err != nil {
@@ -41,10 +78,10 @@ func (c *Core) PublicKey() (*app.PublicKey, error) {
 		publicKeyPem,
 	}
 
-	return &app.PublicKey{Keys: keys}, nil
+	return keys, nil
 }
 
-func (c *Core) TokenInfo(providerID string, code string) (*app.TokenInfo, error) {
+func (c *Core) GenTokenInfo(providerID string, code string) (*TokenInfo, error) {
 	provider := c.Config.Providers[providerID]
 	log.Debugf("getting access token from %s", provider.Name())
 	providerToken, err := provider.Exchange(oauth2.NoContext, code)
@@ -64,11 +101,11 @@ func (c *Core) TokenInfo(providerID string, code string) (*app.TokenInfo, error)
 		return nil, err
 	}
 
-	token := &app.TokenInfo{Token: *providerToken, User: user, Provider: provider}
+	token := &TokenInfo{Token: *providerToken, User: user, Provider: provider}
 	return token, nil
 }
 
-func (c *Core) Claims(token *app.TokenInfo) (jws.Claims, error) {
+func (c *Core) Claims(token *TokenInfo) (jws.Claims, error) {
 	log.Debugf("received token %s from provider %s", token.AccessToken, token.Provider.Name())
 	// see https://openid.net/specs/openid-connect-core-1_0.html#IDToken
 

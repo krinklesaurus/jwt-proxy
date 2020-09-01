@@ -12,6 +12,12 @@ import (
 const sessionName string = "nonce-session"
 const sessionNonce string = "nonce"
 
+// NonceStore simply stores a nonce for CSRF attack prevention
+type NonceStore interface {
+	CreateNonce(w http.ResponseWriter, r *http.Request) (string, error)
+	GetAndRemove(r *http.Request) (string, error)
+}
+
 func NewHTTPSessionStore() (*HTTPSessionStore, error) {
 	sessionStore := sessions.NewCookieStore([]byte(util.RandomString(32)))
 	return &HTTPSessionStore{sessionStore: sessionStore}, nil

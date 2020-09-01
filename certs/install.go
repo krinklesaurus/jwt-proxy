@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -10,20 +11,23 @@ import (
 	"os"
 	"time"
 
-	"github.com/SermoDigital/jose/jws"
+	"golang.org/x/oauth2"
+
 	"github.com/krinklesaurus/jwt-proxy/config"
 	"github.com/krinklesaurus/jwt-proxy/core"
 	"github.com/krinklesaurus/jwt-proxy/log"
 	"github.com/krinklesaurus/jwt-proxy/user"
 	uuid "github.com/satori/go.uuid"
+	"github.com/spf13/viper"
 )
 
-func installCerts() {
-	f1, err := os.Create("private.pem")
+func installCerts(config *config.Config) {
+	f1, err := os.Create(config.PrivateRSAKeyPath)
 	if err != nil {
+		fmt.Println(fmt.Sprintf("file %s could not be opened", config.PrivateRSAKeyPath))
 		panic(err)
 	}
-	f2, err := os.Create("public.pem")
+	f2, err := os.Create(config.PublicRSAKeyPath)
 	if err != nil {
 		panic(err)
 	}
@@ -58,34 +62,22 @@ func installCerts() {
 	f2.Close()
 }
 
-func createTestToken(c *core.Core) {
-	claims := jws.Claims{}
+func createTestToken(config *config.Config) {
+	userService := &user.HashUserService{}
+	tokenizer := core.NewRSATokenizer(core.SigningMethods[config.SigningMethod], config.PrivateRSAKey)
 
-	expiry := time.Now().AddDate(1, 0, 0)
-
-	claims.SetAudience(c.Config.Audience)
-	claims.SetExpiration(expiry)
-	claims.SetIssuedAt(time.Now())
-	claims.SetIssuer(c.Config.Issuer)
-	claims.SetJWTID(uuid.NewV4().String())
-	claims.SetNotBefore(time.Now())
-	claims.SetSubject(c.Config.Subject)
-
-	provider := "test"
-	userID := uuid.NewV4().String()
-	accessToken := uuid.NewV4().String()
-
-	claims.Set("provider", provider)
-	claims.Set("user", userID)
-	claims.Set("access_token", accessToken)
-	claims.Set("token_type", "Bearer")
-	//claims.Set("refresh_token", nil)
-	claims.Set("expiry", expiry.Unix())
-
-	b, err := c.Tokenizer.Serialize(claims)
-	if err != nil {
-		fmt.Printf("Sorry, could not create test token: %v", err)
+	provider := pseudoProvider{}
+	oauthToken, _ := provider.Exchange(context.Background(), uuid.NewV4().String())
+	user, _ := provider.User()
+	c := core.New(config, tokenizer, userService)
+	token := &core.TokenInfo{
+		Token:    *oauthToken,
+		User:     user,
+		Provider: provider,
 	}
+	claims, _ := c.Claims(token)
+
+	b, _ := c.JwtToken(claims)
 
 	jwtAsString := string(b)
 
@@ -98,6 +90,38 @@ func createTestToken(c *core.Core) {
 	log.Infof("--------- CREATED TEST TOKEN END ---------")
 }
 
+type pseudoProvider struct {
+}
+
+func (p pseudoProvider) AuthCodeURL(state string) string {
+	return ""
+}
+
+func (p pseudoProvider) User() (string, error) {
+	return fmt.Sprintf("user-%s", uuid.NewV4().String()), nil
+}
+
+func (p pseudoProvider) Exchange(ctx context.Context, code string) (*oauth2.Token, error) {
+	return &oauth2.Token{
+		AccessToken:  uuid.NewV4().String(),
+		TokenType:    "Bearer",
+		RefreshToken: uuid.NewV4().String(),
+		Expiry:       time.Now().Add(time.Duration(24*30) * time.Hour),
+	}, nil
+}
+
+func (p pseudoProvider) String() string {
+	return p.Name()
+}
+
+func (p pseudoProvider) Name() string {
+	return "pseudo_provider"
+}
+
+func (p pseudoProvider) ClientID() string {
+	return "pseudo_client_id"
+}
+
 func main() {
 	configPtr := flag.String("config", "", "configuration file")
 	certs := flag.Bool("certs", false, "true if certs should be created from scratch")
@@ -105,19 +129,26 @@ func main() {
 
 	flag.Parse()
 
+	viper.SetConfigFile(*configPtr)
+	var err error
+	if err = viper.ReadInConfig(); err != nil {
+		fmt.Println("could not read config file:", viper.ConfigFileUsed())
+	}
+
+	config := &config.Config{
+		Audience:          viper.GetString("jwt.audience"),
+		Issuer:            viper.GetString("jwt.issuer"),
+		ExpirySeconds:     viper.GetInt("jwt.expirySeconds"),
+		SigningMethod:     viper.GetString("jwt.signingMethod"),
+		PrivateRSAKeyPath: viper.GetString("jwt.privateRSAKeyPath"),
+		PublicRSAKeyPath:  viper.GetString("jwt.publicRSAKeyPath"),
+	}
+
 	if *certs {
-		installCerts()
+		installCerts(config)
 	}
 
 	if *token {
-		config, err := config.Initialize(*configPtr)
-		if err != nil {
-			panic(err)
-		}
-		log.Infof("Config initialized: %s", config.String())
-		userService := &user.HashUserService{}
-		tokenizer := core.NewRSATokenizer(config.SigningMethod, config.PrivateRSAKey)
-		core := core.New(config, tokenizer, userService)
-		createTestToken(core)
+		createTestToken(config)
 	}
 }

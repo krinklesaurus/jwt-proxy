@@ -7,16 +7,15 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	app "github.com/krinklesaurus/jwt-proxy"
 	"github.com/krinklesaurus/jwt-proxy/log"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
 
-func NewGoogle(rootURI string, clientID string, clientSecret string, scopes []string) app.Provider {
+func NewGoogle(rootURI string, clientID string, clientSecret string, scopes []string) Provider {
 	return &GoogleProvider{conf: oauth2.Config{
-		RedirectURL:  rootURI + "/callback/google",
+		RedirectURL:  rootURI + "/jwt-proxy/callback/google",
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		Scopes:       scopes,
