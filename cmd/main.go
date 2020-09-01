@@ -47,12 +47,14 @@ func main() {
 	}
 
 	r := mux.NewRouter()
-	r.HandleFunc("/", handler.HomeHandler)
-	r.HandleFunc("/login", handler.LoginHandler)
-	r.HandleFunc("/login/{provider}", handler.ProviderLoginHandler)
-	r.HandleFunc("/callback/{provider}", handler.CallbackHandler)
-	r.HandleFunc("/pubkey", handler.PublicKeyHandler)
-	r.HandleFunc("/token", handler.VerifyToken)
+	r.HandleFunc("/", handler.HomeHandler).Methods("GET", "HEAD")
+	r.HandleFunc("/robots.txt", handler.RobotsHandler).Methods("GET", "HEAD")
+	r.HandleFunc("/ping", handler.PingHandler).Methods("GET", "HEAD")
+	r.HandleFunc("/jwt-proxy/login", handler.LoginHandler).Methods("GET", "HEAD")
+	r.HandleFunc("/jwt-proxy/login/{provider}", handler.ProviderLoginHandler).Methods("GET", "HEAD")
+	r.HandleFunc("/jwt-proxy/callback/{provider}", handler.CallbackHandler).Methods("GET", "HEAD")
+	r.HandleFunc("/jwt-proxy/pubkey", handler.PublicKeyHandler).Methods("GET", "HEAD")
+	r.HandleFunc("/jwt-proxy/token", handler.VerifyToken).Methods("GET", "HEAD", "PUT", "POST")
 
 	n := negroni.New()
 	n.Use(negronilogrus.NewMiddleware())

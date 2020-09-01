@@ -17,7 +17,7 @@ import (
 func NewGithub(rootURI string, clientID string, clientSecret string, scopes []string) app.Provider {
 	log.Debugf("create github provider with clientID %s and scopes %s", clientID, scopes)
 	return &GithubProvider{conf: oauth2.Config{
-		RedirectURL:  rootURI + "/callback/github",
+		RedirectURL:  rootURI + "/jwt-proxy/callback/github",
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		Scopes:       scopes,

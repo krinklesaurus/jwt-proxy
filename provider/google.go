@@ -16,7 +16,7 @@ import (
 
 func NewGoogle(rootURI string, clientID string, clientSecret string, scopes []string) app.Provider {
 	return &GoogleProvider{conf: oauth2.Config{
-		RedirectURL:  rootURI + "/callback/google",
+		RedirectURL:  rootURI + "/jwt-proxy/callback/google",
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		Scopes:       scopes,

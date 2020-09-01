@@ -3,7 +3,7 @@ package mock
 import (
 	"fmt"
 
-	"github.com/krinklesaurus/jwt-proxy"
+	app "github.com/krinklesaurus/jwt-proxy"
 )
 
 func NewUserservice() app.UserService {
@@ -13,11 +13,9 @@ func NewUserservice() app.UserService {
 type userService struct {
 }
 
-func (us *userService) UniqueUser(provider string, providerUserID string) (app.User, error) {
+func (us *userService) UniqueUser(provider string, providerUserID string) (string, error) {
 	userID := fmt.Sprintf("%s", providerUserID)
-	return app.User{
-		ID: userID,
-	}, nil
+	return userID, nil
 }
 
 func (us *userService) LoginUser(username string, plainPassword string) error {

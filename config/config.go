@@ -46,31 +46,31 @@ func Initialize(configFile string) (*app.Config, error) {
 
 	providers := map[string]app.Provider{}
 
-	googleConfig := viper.Sub("providers.google")
-	if googleConfig != nil {
+	googleClientID := viper.GetString("providers.google.clientId")
+	if googleClientID != "" {
 		providers["google"] = provider.NewGoogle(
 			rootURI,
-			viper.GetString("providers.google.clientId"),
+			googleClientID,
 			viper.GetString("providers.google.clientSecret"),
 			viper.GetStringSlice("providers.google.scopes"),
 		)
 	}
 
-	githubConfig := viper.Sub("providers.github")
-	if githubConfig != nil {
+	githubClientID := viper.GetString("providers.github.clientId")
+	if githubClientID != "" {
 		providers["github"] = provider.NewGithub(
 			rootURI,
-			viper.GetString("providers.github.clientId"),
+			githubClientID,
 			viper.GetString("providers.github.clientSecret"),
 			viper.GetStringSlice("providers.github.scopes"),
 		)
 	}
 
-	facebookConfig := viper.Sub("providers.facebook")
-	if facebookConfig != nil {
+	facebookClientID := viper.GetString("providers.facebook.clientId")
+	if facebookClientID != "" {
 		providers["facebook"] = provider.NewFacebook(
 			rootURI,
-			viper.GetString("providers.facebook.clientId"),
+			facebookClientID,
 			viper.GetString("providers.facebook.clientSecret"),
 			viper.GetStringSlice("providers.facebook.scopes"),
 		)
@@ -109,6 +109,9 @@ func Initialize(configFile string) (*app.Config, error) {
 		publicKeyData = []byte(publicKey)
 	}
 	block, _ := pem.Decode(publicKeyData)
+	if block == nil {
+		return nil, fmt.Errorf("could not decode publicKeyData %v", string(publicKeyData))
+	}
 	rsaPub, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
 		return nil, err

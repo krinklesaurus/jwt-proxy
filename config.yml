@@ -1,5 +1,5 @@
 rootUri: http://localhost:8080
-redirectUri: http://localhost:8080/callback
+redirectUri: http://localhost:8080/jwt-proxy/callback
 wwwRootDir: www
 jwt:
   publicKeyPath: certs/public.pem
@@ -8,19 +8,3 @@ jwt:
   audience: your-audience
   subject: your-subject
   expirySeconds: 2592000
-providers:
-  google:
-    clientId: your-google-client-id
-    clientSecret: your-google-secret
-    scopes:
-      - profile
-  github:
-    clientId: your-github-client-id
-    clientSecret: your-github-secret
-    scopes:
-      - user
-  facebook:
-    clientId: your-facebook-client-id
-    clientSecret: your-facebook-secret
-    scopes:
-      - public-profile

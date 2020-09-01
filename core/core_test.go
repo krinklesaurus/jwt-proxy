@@ -5,7 +5,7 @@ import (
 	"encoding/pem"
 	"testing"
 
-	"github.com/krinklesaurus/jwt-proxy"
+	app "github.com/krinklesaurus/jwt-proxy"
 	"github.com/krinklesaurus/jwt-proxy/mock"
 	"github.com/stretchr/testify/assert"
 )
@@ -29,18 +29,18 @@ func TestPublicKey(t *testing.T) {
 }
 
 func TestToken(t *testing.T) {
-	token, err := core.Token("MOCK_PROVIDER", "code")
+	token, err := core.TokenInfo("MOCK_PROVIDER", "code")
 	assert.Nil(t, err, "err should be nothing")
 
-	assert.Equal(t, "MOCK_PROVIDER", token.ProviderID, "provider ids do not match")
-	assert.Equal(t, "MOCK_USER_ID", token.UserID, "user ids do not match")
+	assert.Equal(t, "MOCK_PROVIDER", token.Provider.Name(), "provider ids do not match")
+	assert.Equal(t, "MOCK_USER_ID", token.User, "user ids do not match")
 }
 
 func TestJwtToken(t *testing.T) {
-	token, err := core.Token("MOCK_PROVIDER", "code")
+	token, err := core.TokenInfo("MOCK_PROVIDER", "code")
 	assert.Nil(t, err, "err should be nothing")
 
-	claims := core.Claims(token)
+	claims, _ := core.Claims(token)
 	assert.Nil(t, err, "err should be nothing")
 
 	data, err := core.JwtToken(claims)

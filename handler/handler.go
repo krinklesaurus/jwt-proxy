@@ -46,7 +46,16 @@ func (handler *Handler) jwtHandler(w http.ResponseWriter, r *http.Request, token
 }
 
 func (handler *Handler) HomeHandler(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/login", 302)
+	http.Redirect(w, r, "/jwt-proxy/login", 302)
+}
+
+func (handler *Handler) RobotsHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, fmt.Sprintf("%s/%s", handler.config.WWWRootDir, "robots.txt"))
+}
+
+func (handler *Handler) PingHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("pong"))
 }
 
 func (handler *Handler) CallbackHandler(w http.ResponseWriter, r *http.Request) {

@@ -17,7 +17,7 @@ func (c *core) PublicKey() (*app.PublicKey, error) {
 		Keys: []string{"MOCK_PUBLIC_KEY"}}, nil
 }
 
-func (c *core) Token(provider string, code string) (*app.TokenInfo, error) {
+func (c *core) TokenInfo(provider string, code string) (*app.TokenInfo, error) {
 	return &app.TokenInfo{}, nil
 }
 
@@ -26,8 +26,8 @@ func (c *core) JwtToken(jws.Claims) ([]byte, error) {
 	return data, nil
 }
 
-func (c *core) Claims(token *app.TokenInfo) jws.Claims {
-	return jws.Claims{}
+func (c *core) Claims(token *app.TokenInfo) (jws.Claims, error) {
+	return jws.Claims{}, nil
 }
 
 func (c *core) RedirectURI() string {

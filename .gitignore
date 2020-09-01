@@ -24,6 +24,7 @@ _testmain.go
 *.prof
 
 # custom entries
+.DS_Store
 vendor/
 certs/private.pem
 certs/public.pem

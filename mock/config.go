@@ -29,6 +29,10 @@ func (m *provider) ClientID() string {
 	return "CLIENT_ID"
 }
 
+func (m *provider) User() (string, error) {
+	return "MOCK_USER_ID", nil
+}
+
 func (m *provider) Exchange(ctx context.Context, code string) (*oauth2.Token, error) {
 	return &oauth2.Token{
 		AccessToken:  "MOCK_ACCESS_TOKEN",
@@ -49,7 +53,7 @@ func NewMockConfig() *app.Config {
 }
 
 func (p *provider) Name() string {
-	return "mockprovider"
+	return "MOCK_PROVIDER"
 }
 
 func (p *provider) String() string {

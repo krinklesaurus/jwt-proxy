@@ -17,7 +17,7 @@ import (
 func NewFacebook(rootURI string, clientID string, clientSecret string, scopes []string) app.Provider {
 	return &FacebookProvider{
 		conf: oauth2.Config{
-			RedirectURL:  rootURI + "/callback/facebook",
+			RedirectURL:  rootURI + "/jwt-proxy/callback/facebook",
 			ClientID:     clientID,
 			ClientSecret: clientSecret,
 			Scopes:       scopes,
