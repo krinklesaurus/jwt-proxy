@@ -7,14 +7,13 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	app "github.com/krinklesaurus/jwt-proxy"
 	"github.com/krinklesaurus/jwt-proxy/log"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
 )
 
-func NewGithub(rootURI string, clientID string, clientSecret string, scopes []string) app.Provider {
+func NewGithub(rootURI string, clientID string, clientSecret string, scopes []string) Provider {
 	log.Debugf("create github provider with clientID %s and scopes %s", clientID, scopes)
 	return &GithubProvider{conf: oauth2.Config{
 		RedirectURL:  rootURI + "/jwt-proxy/callback/github",

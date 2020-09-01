@@ -7,14 +7,13 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	app "github.com/krinklesaurus/jwt-proxy"
 	"github.com/krinklesaurus/jwt-proxy/log"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/facebook"
 )
 
-func NewFacebook(rootURI string, clientID string, clientSecret string, scopes []string) app.Provider {
+func NewFacebook(rootURI string, clientID string, clientSecret string, scopes []string) Provider {
 	return &FacebookProvider{
 		conf: oauth2.Config{
 			RedirectURL:  rootURI + "/jwt-proxy/callback/facebook",

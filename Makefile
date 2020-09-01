@@ -11,7 +11,8 @@ clean:
 .PHONY: test
 test:
 	golint ./... &&\
-		go test -v -race -cover -coverprofile cover.out ./...
+		go test -v -race -cover -coverprofile coverage.out ./... &&\
+		go tool cover -html=coverage.out -o coverage.html
 
 .PHONY: run
 run:
@@ -26,3 +27,11 @@ deploy:
 	docker build -t krinklesaurus/${NAME}:latest -t krinklesaurus/${NAME}:${VERSION} .	&&\
 	docker push krinklesaurus/${NAME}:latest &&\
 	docker push krinklesaurus/${NAME}:${VERSION}
+
+.PHONY: create-certs
+create-certs:
+	go run certs/install.go --config config.yml --certs
+
+.PHONY: create-token
+create-token:
+	go run certs/install.go --config config.yml --token

@@ -9,21 +9,27 @@ import (
 
 	"github.com/alecthomas/template"
 	"github.com/gorilla/mux"
-	app "github.com/krinklesaurus/jwt-proxy"
+	"github.com/krinklesaurus/jwt-proxy/config"
+	"github.com/krinklesaurus/jwt-proxy/core"
 	"github.com/krinklesaurus/jwt-proxy/log"
 )
 
-func New(config *app.Config, core app.CoreAuth, nonceStore app.NonceStore) (*Handler, error) {
+type Handler struct {
+	config     *config.Config
+	core       core.CoreAuth
+	nonceStore NonceStore
+}
+
+// PublicKey is a struct for a list of keys
+type PublicKey struct {
+	Keys []string
+}
+
+func New(config *config.Config, core core.CoreAuth, nonceStore NonceStore) (*Handler, error) {
 	return &Handler{config: config, core: core, nonceStore: nonceStore}, nil
 }
 
-type Handler struct {
-	config     *app.Config
-	core       app.CoreAuth
-	nonceStore app.NonceStore
-}
-
-func (handler *Handler) jwtHandler(w http.ResponseWriter, r *http.Request, token *app.TokenInfo) {
+func (handler *Handler) jwtHandler(w http.ResponseWriter, r *http.Request, token *core.TokenInfo) {
 	claims, err := handler.core.Claims(token)
 	if err != nil {
 		log.Errorf("error %s", err.Error())
@@ -86,7 +92,7 @@ func (handler *Handler) CallbackHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	token, err := handler.core.TokenInfo(providerName, code)
+	token, err := handler.core.GenTokenInfo(providerName, code)
 	if err != nil {
 		log.Errorf("error retrieving token %s", err.Error())
 		http.Error(w, "Sorry, some unknown error occurred", http.StatusInternalServerError)
@@ -143,14 +149,18 @@ func (handler *Handler) ProviderLoginHandler(w http.ResponseWriter, r *http.Requ
 }
 
 func (handler *Handler) PublicKeyHandler(w http.ResponseWriter, r *http.Request) {
-	publicKey, err := handler.core.PublicKey()
+	publicKeys, err := handler.core.PublicKeys()
 	if err != nil {
 		log.Errorf("error reading public key %s", err.Error())
 		http.Error(w, "Sorry, some unknown error occurred", http.StatusInternalServerError)
 		return
 	}
 
-	json, _ := json.Marshal(publicKey)
+	json, _ := json.Marshal(struct {
+		Keys []string `json:"keys"`
+	}{
+		Keys: publicKeys,
+	})
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(json)
@@ -163,7 +173,7 @@ func (handler *Handler) VerifyToken(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "no jwt found", http.StatusUnauthorized)
 		return
 	}
-	err = jwt.Validate(handler.config.PublicRSAKey, handler.config.SigningMethod)
+	err = jwt.Validate(handler.config.PublicRSAKey, core.SigningMethods[handler.config.SigningMethod])
 	if err != nil {
 		log.Errorf("no valid jwt: %v", err)
 		http.Error(w, "no valid jwt", http.StatusUnauthorized)

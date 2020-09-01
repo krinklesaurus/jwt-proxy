@@ -1,0 +1,971 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/krinklesaurus/jwt-proxy/config/config.go (68.4%)</option>
+				
+				<option value="file1">github.com/krinklesaurus/jwt-proxy/core/core.go (74.1%)</option>
+				
+				<option value="file2">github.com/krinklesaurus/jwt-proxy/core/rsatokenizer.go (100.0%)</option>
+				
+				<option value="file3">github.com/krinklesaurus/jwt-proxy/provider/facebook.go (7.1%)</option>
+				
+				<option value="file4">github.com/krinklesaurus/jwt-proxy/provider/github.go (0.0%)</option>
+				
+				<option value="file5">github.com/krinklesaurus/jwt-proxy/provider/google.go (0.0%)</option>
+				
+				<option value="file6">github.com/krinklesaurus/jwt-proxy/user/hashuserservice.go (91.7%)</option>
+				
+				<option value="file7">github.com/krinklesaurus/jwt-proxy/user/plainuserservice.go (100.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">no coverage</span>
+				<span class="cov1">low coverage</span>
+				<span class="cov2">*</span>
+				<span class="cov3">*</span>
+				<span class="cov4">*</span>
+				<span class="cov5">*</span>
+				<span class="cov6">*</span>
+				<span class="cov7">*</span>
+				<span class="cov8">*</span>
+				<span class="cov9">*</span>
+				<span class="cov10">high coverage</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package config
+
+import (
+        "crypto/rsa"
+        "crypto/x509"
+        "encoding/pem"
+        "fmt"
+        "io/ioutil"
+        "strings"
+
+        "github.com/krinklesaurus/jwt-proxy/log"
+        "github.com/krinklesaurus/jwt-proxy/provider"
+        "github.com/spf13/viper"
+)
+
+// Config is the struct for the config defined in a config.yml
+
+type configRaw struct {
+        RootURI     string `mapstructure:"rootUri"`
+        RedirectURI string `mapstructure:"redirectUri"`
+        WWWRootDir  string `mapstructure:"wwwRootDir"`
+        Providers   map[string]struct {
+                ClientID     string   `mapstructure:"clientId"`
+                ClientSecret string   `mapstructure:"clientSecret"`
+                Scopes       []string `mapstructure:"scopes"`
+        } `mapstructure:"providers"`
+        JWT struct {
+                PrivateRSAKey     string `mapstructure:"privateRSAKey"`
+                PublicRSAKey      string `mapstructure:"publicRSAKey"`
+                PrivateRSAKeyPath string `mapstructure:"privateRSAKeyPath"`
+                PublicRSAKeyPath  string `mapstructure:"publicRSAKeyPath"`
+                SigningMethod     string `mapstructure:"signingMethod"`
+                Audience          string `mapstructure:"audience"`
+                Issuer            string `mapstructure:"issuer"`
+                Subject           string `mapstructure:"subject"`
+                ExpirySeconds     int    `mapstructure:"expirySeconds"`
+        } `mapstructure:"jwt"`
+}
+
+type Config struct {
+        RootURI           string
+        RedirectURI       string
+        WWWRootDir        string
+        Providers         map[string]provider.Provider
+        SigningMethod     string
+        PrivateRSAKey     *rsa.PrivateKey
+        PublicRSAKey      interface{}
+        PrivateRSAKeyPath string
+        PublicRSAKeyPath  string
+        Audience          string
+        Issuer            string
+        Subject           string
+        Password          string
+        ExpirySeconds     int
+}
+
+func Initialize(configFile string) (*Config, error) <span class="cov4" title="2">{
+        if configFile != "" </span><span class="cov4" title="2">{
+                viper.SetConfigFile(configFile)
+        }</span> else<span class="cov0" title="0"> {
+                viper.SetConfigName("config")
+                viper.AddConfigPath(".")
+        }</span>
+
+        <span class="cov4" title="2">viper.AutomaticEnv()
+        viper.SetConfigType("yaml")
+        viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+
+        var err error
+        if err = viper.ReadInConfig(); err != nil </span><span class="cov0" title="0">{
+                fmt.Println("could not read config file:", viper.ConfigFileUsed())
+        }</span>
+
+        /*
+                rootURI := viper.GetString("rootUri")
+                if rootURI == "" {
+                        return nil, errors.New("no rootUri set")
+                }
+
+                redirectURI := viper.GetString("redirectUri")
+                if redirectURI == "" {
+                        return nil, errors.New("no redirectUri set")
+                }
+
+                wwwRootDir := viper.GetString("wwwRootDir")
+                if wwwRootDir == "" {
+                        wwwRootDir = "www"
+                }
+
+                providers := map[string]app.Provider{}
+
+                googleClientID := viper.GetString("providers.google.clientId")
+                if googleClientID != "" {
+                        providers["google"] = provider.NewGoogle(
+                                rootURI,
+                                googleClientID,
+                                viper.GetString("providers.google.clientSecret"),
+                                viper.GetStringSlice("providers.google.scopes"),
+                        )
+                }
+
+                githubClientID := viper.GetString("providers.github.clientId")
+                if githubClientID != "" {
+                        providers["github"] = provider.NewGithub(
+                                rootURI,
+                                githubClientID,
+                                viper.GetString("providers.github.clientSecret"),
+                                viper.GetStringSlice("providers.github.scopes"),
+                        )
+                }
+
+                facebookClientID := viper.GetString("providers.facebook.clientId")
+                if facebookClientID != "" {
+                        providers["facebook"] = provider.NewFacebook(
+                                rootURI,
+                                facebookClientID,
+                                viper.GetString("providers.facebook.clientSecret"),
+                                viper.GetStringSlice("providers.facebook.scopes"),
+                        )
+                }
+
+                audience := viper.GetString("jwt.audience")
+                issuer := viper.GetString("jwt.issuer")
+                subject := viper.GetString("jwt.subject")
+                expiry := viper.GetInt("jwt.expirySeconds")
+
+                signingMethodKey := viper.GetString("jwt.signingMethod")
+                if signingMethodKey == "" {
+                        return nil, errors.New("no signing method set")
+                }
+                signingMethod := app.SigningMethods[signingMethodKey]
+                if signingMethod == nil {
+                        return nil, errors.New("no valid signing method set")
+                }
+
+                var publicKeyData []byte
+                publicKey := viper.GetString("jwt.publicKey")
+                publicKeyPath := viper.GetString("jwt.publicKeyPath")
+                if publicKey == "" {
+                        if publicKeyPath == "" {
+                                publicKeyPath = "certs/public.pem"
+                        }
+                        publicKeyData, err = ioutil.ReadFile(publicKeyPath)
+                        if err != nil {
+                                return nil, err
+                        }
+                } else {
+                        publicKeyData = []byte(publicKey)
+                }
+                block, _ := pem.Decode(publicKeyData)
+                if block == nil {
+                        return nil, fmt.Errorf("could not decode publicKeyData %v", string(publicKeyData))
+                }
+                rsaPub, err := x509.ParsePKIXPublicKey(block.Bytes)
+                if err != nil {
+                        return nil, err
+                }
+
+                var privateKeyData []byte
+                privateKey := viper.GetString("jwt.privateKey")
+                privateKeyPath := viper.GetString("jwt.privateKeyPath")
+                if privateKey == "" {
+                        if privateKeyPath == "" {
+                                privateKeyPath = "certs/private.pem"
+                        }
+                        privateKeyData, err = ioutil.ReadFile(privateKeyPath)
+                        if err != nil {
+                                return nil, err
+                        }
+                } else {
+                        privateKeyData = []byte(privateKey)
+                }
+                block2, _ := pem.Decode(privateKeyData)
+                rsaPriv, err := x509.ParsePKCS1PrivateKey(block2.Bytes)
+                if err != nil {
+                        return nil, err
+                }
+
+                return &amp;app.Config{RootURI: rootURI,
+                        RedirectURI:       redirectURI,
+                        WWWRootDir:        wwwRootDir,
+                        Providers:         providers,
+                        SigningMethod:     signingMethod,
+                        PrivateRSAKey:     rsaPriv,
+                        PublicRSAKey:      rsaPub,
+                        PrivateRSAKeyPath: privateKeyPath,
+                        PublicRSAKeyPath:  publicKeyPath,
+                        Audience:          audience,
+                        Issuer:            issuer,
+                        Subject:           subject,
+                        ExpirySeconds:     expiry}, nil
+        */
+
+        <span class="cov4" title="2">var raw configRaw
+        err = viper.Unmarshal(&amp;raw)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov4" title="2">log.Debugf("loaded raw config: %+v", raw)
+
+        providers := map[string]provider.Provider{}
+        for key, providerInfo := range raw.Providers </span><span class="cov10" title="6">{
+                switch key </span>{
+                case "google":<span class="cov4" title="2">
+                        providers["google"] = provider.NewGoogle(
+                                raw.RootURI,
+                                providerInfo.ClientID,
+                                providerInfo.ClientSecret,
+                                // bug in Viper/mapstructure forces us to split it manually again
+                                strings.Split(providerInfo.Scopes[0], " "),
+                        )</span>
+                case "facebook":<span class="cov4" title="2">
+                        providers["facebook"] = provider.NewFacebook(
+                                raw.RootURI,
+                                providerInfo.ClientID,
+                                providerInfo.ClientSecret,
+                                strings.Split(providerInfo.Scopes[0], " "),
+                        )</span>
+                case "github":<span class="cov4" title="2">
+                        providers["github"] = provider.NewGithub(
+                                raw.RootURI,
+                                providerInfo.ClientID,
+                                providerInfo.ClientSecret,
+                                strings.Split(providerInfo.Scopes[0], " "),
+                        )</span>
+                default:<span class="cov0" title="0">
+                        log.Warnf("no provider info for key %s", key)</span>
+                }
+        }
+
+        <span class="cov4" title="2">var publicKeyData []byte
+        publicRSAKey := raw.JWT.PublicRSAKey
+        publicRSAKeyPath := raw.JWT.PublicRSAKeyPath
+        if publicRSAKey == "" </span><span class="cov4" title="2">{
+                if publicRSAKeyPath == "" </span><span class="cov0" title="0">{
+                        publicRSAKeyPath = "certs/public.pem"
+                }</span>
+                <span class="cov4" title="2">publicKeyData, err = ioutil.ReadFile(publicRSAKeyPath)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+        } else<span class="cov0" title="0"> {
+                publicKeyData = []byte(publicRSAKey)
+        }</span>
+        <span class="cov4" title="2">block, _ := pem.Decode(publicKeyData)
+        if block == nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("could not decode publicKeyData %v", string(publicKeyData))
+        }</span>
+        <span class="cov4" title="2">rsaPub, err := x509.ParsePKIXPublicKey(block.Bytes)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov4" title="2">var privateKeyData []byte
+        privateRSAKey := raw.JWT.PrivateRSAKey
+        privateRSAKeyPath := raw.JWT.PrivateRSAKeyPath
+        if privateRSAKey == "" </span><span class="cov4" title="2">{
+                if privateRSAKeyPath == "" </span><span class="cov0" title="0">{
+                        privateRSAKeyPath = "certs/private.pem"
+                }</span>
+                <span class="cov4" title="2">privateKeyData, err = ioutil.ReadFile(privateRSAKeyPath)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+        } else<span class="cov0" title="0"> {
+                privateKeyData = []byte(privateRSAKey)
+        }</span>
+        <span class="cov4" title="2">block2, _ := pem.Decode(privateKeyData)
+        rsaPriv, err := x509.ParsePKCS1PrivateKey(block2.Bytes)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov4" title="2">return &amp;Config{RootURI: raw.RootURI,
+                RedirectURI:   raw.RedirectURI,
+                WWWRootDir:    raw.WWWRootDir,
+                Providers:     providers,
+                SigningMethod: raw.JWT.SigningMethod,
+                PrivateRSAKey: rsaPriv,
+                PublicRSAKey:  rsaPub,
+                Audience:      raw.JWT.Audience,
+                Issuer:        raw.JWT.Issuer,
+                Subject:       raw.JWT.Subject,
+                ExpirySeconds: raw.JWT.ExpirySeconds}, nil</span>
+}
+
+// String is a helping toString function for the config for debugging
+func (c *Config) String() string <span class="cov0" title="0">{
+        providersString := ""
+        for _, p := range c.Providers </span><span class="cov0" title="0">{
+                providersString = providersString + fmt.Sprintf("%s with clientId %s, ", p.Name(), p.ClientID())
+        }</span>
+        <span class="cov0" title="0">return fmt.Sprintf("rootURI: %s, redirectURI: %s, Audience: %s, Issuer: %s, Subject: %s, Providers: %s", c.RootURI, c.RedirectURI, c.Audience, c.Issuer, c.Subject, providersString)</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package core
+
+import (
+        "crypto/x509"
+        "encoding/pem"
+        "time"
+
+        "github.com/SermoDigital/jose/crypto"
+        "github.com/SermoDigital/jose/jws"
+        "github.com/krinklesaurus/jwt-proxy/config"
+        "github.com/krinklesaurus/jwt-proxy/log"
+        "github.com/krinklesaurus/jwt-proxy/provider"
+        "github.com/krinklesaurus/jwt-proxy/user"
+        "golang.org/x/oauth2"
+)
+
+var SigningMethods = map[string]crypto.SigningMethod{
+        "RS256": crypto.SigningMethodRS256,
+        "RS384": crypto.SigningMethodRS384,
+        "RS512": crypto.SigningMethodRS512,
+        "HS256": crypto.SigningMethodHS256,
+        "HS384": crypto.SigningMethodHS384,
+        "HS512": crypto.SigningMethodHS512,
+        "ES256": crypto.SigningMethodES256,
+        "ES384": crypto.SigningMethodES384,
+        "ES512": crypto.SigningMethodES512,
+}
+
+// CoreAuth is the central interface of jwt-proxy. It provides all function necessary
+// for handling the redirect to the provider, process the login, enrich the provider's
+// token with some custom parameters and return the JWT token to the callback URI.
+type CoreAuth interface {
+        PublicKeys() ([]string, error)
+        GenTokenInfo(provider string, code string) (*TokenInfo, error)
+        Claims(token *TokenInfo) (jws.Claims, error)
+        JwtToken(jws.Claims) ([]byte, error)
+        RedirectURI() string
+        AuthURL(provider string, state string) string
+        Providers() []string
+}
+
+// TokenInfo wraps oauth.Token and adds two additional fields:
+// Provider is the OAuth provider, e.g. github or facebook
+// UserInfo is the map of user info claims from the provider
+type TokenInfo struct {
+        oauth2.Token
+        Provider provider.Provider
+        User     string
+}
+
+func New(config *config.Config, tokenizer Tokenizer, userService user.UserService) *Core <span class="cov10" title="2">{
+        tokenStore := map[string]*TokenInfo{}
+        return &amp;Core{Config: config, userService: userService, tokenStore: tokenStore, Tokenizer: tokenizer}
+}</span>
+
+type Core struct {
+        Config      *config.Config
+        userService user.UserService
+        tokenStore  map[string]*TokenInfo
+        Tokenizer   Tokenizer
+}
+
+func (c *Core) PublicKeys() ([]string, error) <span class="cov1" title="1">{
+        publicKey := c.Config.PrivateRSAKey.PublicKey
+        publicKeyDer, err := x509.MarshalPKIXPublicKey(&amp;publicKey)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov1" title="1">publicKeyBlock := pem.Block{
+                Type:    "PUBLIC KEY",
+                Headers: nil,
+                Bytes:   publicKeyDer,
+        }
+        publicKeyPem := string(pem.EncodeToMemory(&amp;publicKeyBlock))
+
+        keys := []string{
+                publicKeyPem,
+        }
+
+        return keys, nil</span>
+}
+
+func (c *Core) GenTokenInfo(providerID string, code string) (*TokenInfo, error) <span class="cov1" title="1">{
+        provider := c.Config.Providers[providerID]
+        log.Debugf("getting access token from %s", provider.Name())
+        providerToken, err := provider.Exchange(oauth2.NoContext, code)
+
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov1" title="1">log.Debugf("received provider token %+v", providerToken)
+
+        userID, err := provider.User()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov1" title="1">user, err := c.userService.UniqueUser(providerID, userID)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov1" title="1">token := &amp;TokenInfo{Token: *providerToken, User: user, Provider: provider}
+        return token, nil</span>
+}
+
+func (c *Core) Claims(token *TokenInfo) (jws.Claims, error) <span class="cov1" title="1">{
+        log.Debugf("received token %s from provider %s", token.AccessToken, token.Provider.Name())
+        // see https://openid.net/specs/openid-connect-core-1_0.html#IDToken
+
+        claims := jws.Claims{}
+        claims.SetIssuer(c.Config.RootURI)
+        claims.SetSubject(c.Config.Subject)
+        claims.SetAudience(token.Provider.ClientID())
+
+        now := time.Now()
+        expiry := token.Expiry
+        if aft := expiry.After(now); !aft </span><span class="cov1" title="1">{
+                expiry = now.Add(time.Duration(c.Config.ExpirySeconds) * time.Second)
+        }</span>
+        <span class="cov1" title="1">claims.SetExpiration(expiry)
+        claims.SetIssuedAt(time.Now())
+
+        claims.Set("provider", token.Provider.Name())
+        claims.Set("user", token.User)
+        claims.Set("access_token", token.AccessToken)
+        claims.Set("token_type", token.TokenType)
+        claims.Set("refresh_token", token.RefreshToken)
+
+        return claims, nil</span>
+}
+
+func (c *Core) JwtToken(claims jws.Claims) ([]byte, error) <span class="cov1" title="1">{
+        b, err := c.Tokenizer.Serialize(claims)
+
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov1" title="1">return b, nil</span>
+}
+
+func (c *Core) RedirectURI() string <span class="cov0" title="0">{
+        return c.Config.RedirectURI
+}</span>
+
+func (c *Core) LocalEnabled() bool <span class="cov0" title="0">{
+        return false
+}</span>
+
+func (c *Core) Providers() []string <span class="cov0" title="0">{
+        keys := []string{}
+        for key := range c.Config.Providers </span><span class="cov0" title="0">{
+                keys = append(keys, key)
+        }</span>
+        <span class="cov0" title="0">return keys</span>
+}
+
+func (c *Core) AuthURL(providerID string, state string) string <span class="cov0" title="0">{
+        provider := c.Config.Providers[providerID]
+        url := provider.AuthCodeURL(state)
+        return url
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package core
+
+import (
+        "crypto/rsa"
+
+        "github.com/SermoDigital/jose/crypto"
+        "github.com/SermoDigital/jose/jws"
+)
+
+func NewRSATokenizer(signingMethod crypto.SigningMethod, privKey *rsa.PrivateKey) Tokenizer <span class="cov8" title="1">{
+        return &amp;RSATokenizer{signingMethod: signingMethod, privKey: privKey}
+}</span>
+
+type RSATokenizer struct {
+        signingMethod crypto.SigningMethod
+        privKey       *rsa.PrivateKey
+}
+
+func (t *RSATokenizer) Serialize(claims map[string]interface{}) ([]byte, error) <span class="cov8" title="1">{
+        jwt := jws.NewJWT(claims, t.signingMethod)
+        return jwt.Serialize(t.privKey)
+}</span>
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package provider
+
+import (
+        "bytes"
+        "encoding/json"
+        "fmt"
+        "io/ioutil"
+        "net/http"
+
+        "github.com/krinklesaurus/jwt-proxy/log"
+        "golang.org/x/net/context"
+        "golang.org/x/oauth2"
+        "golang.org/x/oauth2/facebook"
+)
+
+func NewFacebook(rootURI string, clientID string, clientSecret string, scopes []string) Provider <span class="cov8" title="1">{
+        return &amp;FacebookProvider{
+                conf: oauth2.Config{
+                        RedirectURL:  rootURI + "/jwt-proxy/callback/facebook",
+                        ClientID:     clientID,
+                        ClientSecret: clientSecret,
+                        Scopes:       scopes,
+                        Endpoint:     facebook.Endpoint,
+                },
+                clientID: clientID,
+        }
+}</span>
+
+type FacebookProvider struct {
+        conf     oauth2.Config
+        token    *oauth2.Token
+        clientID string
+}
+
+func (f *FacebookProvider) AuthCodeURL(state string) string <span class="cov8" title="1">{
+        return f.conf.AuthCodeURL(state)
+}</span>
+
+func (f *FacebookProvider) ClientID() string <span class="cov0" title="0">{
+        return f.clientID
+}</span>
+
+func (f *FacebookProvider) User() (string, error) <span class="cov0" title="0">{
+        url := fmt.Sprintf("https://graph.facebook.com/v2.7/me?access_token=%s", f.token.AccessToken)
+
+        response, err := http.Get(url)
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+        <span class="cov0" title="0">defer response.Body.Close()
+        contents, err := ioutil.ReadAll(response.Body)
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+
+        <span class="cov0" title="0">log.Debugf("contents from facebook: %s", contents)
+
+        dec := json.NewDecoder(bytes.NewReader(contents))
+        var asMap map[string]string
+        dec.Decode(&amp;asMap)
+        return asMap["id"], nil</span>
+}
+
+func (f *FacebookProvider) Exchange(ctx context.Context, code string) (*oauth2.Token, error) <span class="cov0" title="0">{
+        token, err := f.conf.Exchange(ctx, code)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">f.token = token
+        return f.token, err</span>
+}
+
+func (f *FacebookProvider) Name() string <span class="cov0" title="0">{
+        return "facebook"
+}</span>
+
+func (f *FacebookProvider) String() string <span class="cov0" title="0">{
+        toString := struct {
+                ClientID   string   `json:"client_id"`
+                AuthURL    string   `json:"auth_url"`
+                TokenURL   string   `json:"token_url"`
+                RediectURL string   `json:"redirect_url"`
+                Scopes     []string `json:"scopes"`
+        }{
+                f.conf.ClientID,
+                f.conf.Endpoint.AuthURL,
+                f.conf.Endpoint.TokenURL,
+                f.conf.RedirectURL,
+                f.conf.Scopes,
+        }
+        b, err := json.Marshal(toString)
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Println(err)
+                return err.Error()
+        }</span>
+        <span class="cov0" title="0">return string(b)</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package provider
+
+import (
+        "bytes"
+        "encoding/json"
+        "fmt"
+        "io/ioutil"
+        "net/http"
+
+        "github.com/krinklesaurus/jwt-proxy/log"
+        "golang.org/x/net/context"
+        "golang.org/x/oauth2"
+        "golang.org/x/oauth2/github"
+)
+
+func NewGithub(rootURI string, clientID string, clientSecret string, scopes []string) Provider <span class="cov0" title="0">{
+        log.Debugf("create github provider with clientID %s and scopes %s", clientID, scopes)
+        return &amp;GithubProvider{conf: oauth2.Config{
+                RedirectURL:  rootURI + "/jwt-proxy/callback/github",
+                ClientID:     clientID,
+                ClientSecret: clientSecret,
+                Scopes:       scopes,
+                Endpoint:     github.Endpoint,
+        },
+                clientID: clientID,
+        }
+}</span>
+
+type userInfo struct {
+        Login string `json:"login"`
+}
+
+type GithubProvider struct {
+        conf     oauth2.Config
+        token    *oauth2.Token
+        clientID string
+}
+
+func (g *GithubProvider) AuthCodeURL(state string) string <span class="cov0" title="0">{
+        return g.conf.AuthCodeURL(state)
+}</span>
+
+func (g *GithubProvider) ClientID() string <span class="cov0" title="0">{
+        return g.clientID
+}</span>
+
+func (g *GithubProvider) User() (string, error) <span class="cov0" title="0">{
+        url := fmt.Sprintf("https://api.github.com/user?access_token=%s", g.token.AccessToken)
+
+        response, err := http.Get(url)
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+        <span class="cov0" title="0">defer response.Body.Close()
+        contents, err := ioutil.ReadAll(response.Body)
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+
+        <span class="cov0" title="0">dec := json.NewDecoder(bytes.NewReader(contents))
+        var userInfo userInfo
+        err = dec.Decode(&amp;userInfo)
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+        <span class="cov0" title="0">log.Debugf("contents from github: %s", userInfo)
+
+        return userInfo.Login, nil</span>
+}
+
+func (g *GithubProvider) Exchange(ctx context.Context, code string) (*oauth2.Token, error) <span class="cov0" title="0">{
+        token, err := g.conf.Exchange(ctx, code)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">if errorMsg := token.Extra("error"); errorMsg != "" </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("%s", token.Extra("error_description"))
+        }</span>
+
+        <span class="cov0" title="0">g.token = token
+        return g.token, err</span>
+}
+
+func (g *GithubProvider) Name() string <span class="cov0" title="0">{
+        return "github"
+}</span>
+
+func (g *GithubProvider) String() string <span class="cov0" title="0">{
+        toString := struct {
+                ClientID   string   `json:"client_id"`
+                AuthURL    string   `json:"auth_url"`
+                TokenURL   string   `json:"token_url"`
+                RediectURL string   `json:"redirect_url"`
+                Scopes     []string `json:"scopes"`
+        }{
+                g.conf.ClientID,
+                g.conf.Endpoint.AuthURL,
+                g.conf.Endpoint.TokenURL,
+                g.conf.RedirectURL,
+                g.conf.Scopes,
+        }
+        b, err := json.Marshal(toString)
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Println(err)
+                return err.Error()
+        }</span>
+        <span class="cov0" title="0">return string(b)</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package provider
+
+import (
+        "bytes"
+        "encoding/json"
+        "fmt"
+        "io/ioutil"
+        "net/http"
+
+        "github.com/krinklesaurus/jwt-proxy/log"
+        "golang.org/x/net/context"
+        "golang.org/x/oauth2"
+        "golang.org/x/oauth2/google"
+)
+
+func NewGoogle(rootURI string, clientID string, clientSecret string, scopes []string) Provider <span class="cov0" title="0">{
+        return &amp;GoogleProvider{conf: oauth2.Config{
+                RedirectURL:  rootURI + "/jwt-proxy/callback/google",
+                ClientID:     clientID,
+                ClientSecret: clientSecret,
+                Scopes:       scopes,
+                Endpoint:     google.Endpoint,
+        },
+                clientID: clientID,
+        }
+}</span>
+
+type GoogleProvider struct {
+        conf     oauth2.Config
+        token    *oauth2.Token
+        clientID string
+}
+
+func (g *GoogleProvider) AuthCodeURL(state string) string <span class="cov0" title="0">{
+        return g.conf.AuthCodeURL(state)
+}</span>
+
+func (g *GoogleProvider) ClientID() string <span class="cov0" title="0">{
+        return g.clientID
+}</span>
+
+func (g *GoogleProvider) User() (string, error) <span class="cov0" title="0">{
+        url := fmt.Sprintf("https://www.googleapis.com/oauth2/v2/userinfo?access_token=%s", g.token.AccessToken)
+
+        response, err := http.Get(url)
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+        <span class="cov0" title="0">defer response.Body.Close()
+        contents, err := ioutil.ReadAll(response.Body)
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+
+        <span class="cov0" title="0">log.Debugf("contents from google: %s", contents)
+
+        dec := json.NewDecoder(bytes.NewReader(contents))
+        var asMap map[string]string
+        dec.Decode(&amp;asMap)
+        return asMap["id"], nil</span>
+}
+
+func (g *GoogleProvider) Exchange(ctx context.Context, code string) (*oauth2.Token, error) <span class="cov0" title="0">{
+        token, err := g.conf.Exchange(ctx, code)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">g.token = token
+        return g.token, err</span>
+}
+
+func (g *GoogleProvider) Name() string <span class="cov0" title="0">{
+        return "google"
+}</span>
+
+func (g *GoogleProvider) String() string <span class="cov0" title="0">{
+        toString := struct {
+                ClientID   string   `json:"client_id"`
+                AuthURL    string   `json:"auth_url"`
+                TokenURL   string   `json:"token_url"`
+                RediectURL string   `json:"redirect_url"`
+                Scopes     []string `json:"scopes"`
+        }{
+                g.conf.ClientID,
+                g.conf.Endpoint.AuthURL,
+                g.conf.Endpoint.TokenURL,
+                g.conf.RedirectURL,
+                g.conf.Scopes,
+        }
+        b, err := json.Marshal(toString)
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Println(err)
+                return err.Error()
+        }</span>
+        <span class="cov0" title="0">return string(b)</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package user
+
+import (
+        "crypto/sha256"
+        "fmt"
+
+        "golang.org/x/crypto/bcrypt"
+
+        "github.com/krinklesaurus/jwt-proxy/log"
+)
+
+type HashUserService struct {
+}
+
+func (us HashUserService) UniqueUser(provider string, providerUserID string) (string, error) <span class="cov1" title="1">{
+        hash := sha256.New()
+        hash.Write([]byte(provider + ":" + providerUserID))
+        hashedUserID := fmt.Sprintf("%x", hash.Sum(nil))
+
+        log.Debugf("user id %s from provider \"%s\" and id \"%s\"", hashedUserID, provider, providerUserID)
+
+        return hashedUserID, nil
+}</span>
+
+func (us HashUserService) LoginUser(username string, plainPassword string) error <span class="cov10" title="2">{
+        testPassword, err := bcrypt.GenerateFromPassword([]byte("tester"), bcrypt.DefaultCost)
+
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov10" title="2">err = bcrypt.CompareHashAndPassword(testPassword, []byte(plainPassword))
+        if err != nil </span><span class="cov1" title="1">{
+                return err
+        }</span>
+
+        <span class="cov1" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package user
+
+import (
+        "fmt"
+        "net/url"
+)
+
+type PlainUserService struct {
+}
+
+func (us PlainUserService) UniqueUser(provider string, providerUserID string) (string, error) <span class="cov10" title="2">{
+        return fmt.Sprintf("%s:%s", url.QueryEscape(provider), url.QueryEscape(providerUserID)), nil
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

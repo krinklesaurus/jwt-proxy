@@ -32,7 +32,7 @@ func main() {
 
 	userService := &user.PlainUserService{}
 
-	tokenizer := core.NewRSATokenizer(config.SigningMethod, config.PrivateRSAKey)
+	tokenizer := core.NewRSATokenizer(core.SigningMethods[config.SigningMethod], config.PrivateRSAKey)
 
 	core := core.New(config, tokenizer, userService)
 	store, err := handler.NewHTTPSessionStore()

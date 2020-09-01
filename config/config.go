@@ -1,19 +1,60 @@
 package config
 
 import (
+	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"strings"
 
-	app "github.com/krinklesaurus/jwt-proxy"
+	"github.com/krinklesaurus/jwt-proxy/log"
 	"github.com/krinklesaurus/jwt-proxy/provider"
 	"github.com/spf13/viper"
 )
 
-func Initialize(configFile string) (*app.Config, error) {
+// Config is the struct for the config defined in a config.yml
+
+type configRaw struct {
+	RootURI     string `mapstructure:"rootUri"`
+	RedirectURI string `mapstructure:"redirectUri"`
+	WWWRootDir  string `mapstructure:"wwwRootDir"`
+	Providers   map[string]struct {
+		ClientID     string   `mapstructure:"clientId"`
+		ClientSecret string   `mapstructure:"clientSecret"`
+		Scopes       []string `mapstructure:"scopes"`
+	} `mapstructure:"providers"`
+	JWT struct {
+		PrivateRSAKey     string `mapstructure:"privateRSAKey"`
+		PublicRSAKey      string `mapstructure:"publicRSAKey"`
+		PrivateRSAKeyPath string `mapstructure:"privateRSAKeyPath"`
+		PublicRSAKeyPath  string `mapstructure:"publicRSAKeyPath"`
+		SigningMethod     string `mapstructure:"signingMethod"`
+		Audience          string `mapstructure:"audience"`
+		Issuer            string `mapstructure:"issuer"`
+		Subject           string `mapstructure:"subject"`
+		ExpirySeconds     int    `mapstructure:"expirySeconds"`
+	} `mapstructure:"jwt"`
+}
+
+type Config struct {
+	RootURI           string
+	RedirectURI       string
+	WWWRootDir        string
+	Providers         map[string]provider.Provider
+	SigningMethod     string
+	PrivateRSAKey     *rsa.PrivateKey
+	PublicRSAKey      interface{}
+	PrivateRSAKeyPath string
+	PublicRSAKeyPath  string
+	Audience          string
+	Issuer            string
+	Subject           string
+	Password          string
+	ExpirySeconds     int
+}
+
+func Initialize(configFile string) (*Config, error) {
 	if configFile != "" {
 		viper.SetConfigFile(configFile)
 	} else {
@@ -22,6 +63,7 @@ func Initialize(configFile string) (*app.Config, error) {
 	}
 
 	viper.AutomaticEnv()
+	viper.SetConfigType("yaml")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	var err error
@@ -29,84 +71,56 @@ func Initialize(configFile string) (*app.Config, error) {
 		fmt.Println("could not read config file:", viper.ConfigFileUsed())
 	}
 
-	rootURI := viper.GetString("rootUri")
-	if rootURI == "" {
-		return nil, errors.New("no rootUri set")
+	var raw configRaw
+	err = viper.Unmarshal(&raw)
+	if err != nil {
+		return nil, err
 	}
+	log.Debugf("loaded raw config: %+v", raw)
 
-	redirectURI := viper.GetString("redirectUri")
-	if redirectURI == "" {
-		return nil, errors.New("no redirectUri set")
-	}
-
-	wwwRootDir := viper.GetString("wwwRootDir")
-	if wwwRootDir == "" {
-		wwwRootDir = "www"
-	}
-
-	providers := map[string]app.Provider{}
-
-	googleClientID := viper.GetString("providers.google.clientId")
-	if googleClientID != "" {
-		providers["google"] = provider.NewGoogle(
-			rootURI,
-			googleClientID,
-			viper.GetString("providers.google.clientSecret"),
-			viper.GetStringSlice("providers.google.scopes"),
-		)
-	}
-
-	githubClientID := viper.GetString("providers.github.clientId")
-	if githubClientID != "" {
-		providers["github"] = provider.NewGithub(
-			rootURI,
-			githubClientID,
-			viper.GetString("providers.github.clientSecret"),
-			viper.GetStringSlice("providers.github.scopes"),
-		)
-	}
-
-	facebookClientID := viper.GetString("providers.facebook.clientId")
-	if facebookClientID != "" {
-		providers["facebook"] = provider.NewFacebook(
-			rootURI,
-			facebookClientID,
-			viper.GetString("providers.facebook.clientSecret"),
-			viper.GetStringSlice("providers.facebook.scopes"),
-		)
-	}
-
-	if len(providers) <= 0 {
-		return nil, errors.New("no providers have been configured")
-	}
-
-	audience := viper.GetString("jwt.audience")
-	issuer := viper.GetString("jwt.issuer")
-	subject := viper.GetString("jwt.subject")
-	expiry := viper.GetInt("jwt.expirySeconds")
-
-	signingMethodKey := viper.GetString("jwt.signingMethod")
-	if signingMethodKey == "" {
-		return nil, errors.New("no signing method set")
-	}
-	signingMethod := app.SigningMethods[signingMethodKey]
-	if signingMethod == nil {
-		return nil, errors.New("no valid signing method set")
+	providers := map[string]provider.Provider{}
+	for key, providerInfo := range raw.Providers {
+		switch key {
+		case "google":
+			providers["google"] = provider.NewGoogle(
+				raw.RootURI,
+				providerInfo.ClientID,
+				providerInfo.ClientSecret,
+				// bug in Viper/mapstructure forces us to split it manually again
+				strings.Split(providerInfo.Scopes[0], " "),
+			)
+		case "facebook":
+			providers["facebook"] = provider.NewFacebook(
+				raw.RootURI,
+				providerInfo.ClientID,
+				providerInfo.ClientSecret,
+				strings.Split(providerInfo.Scopes[0], " "),
+			)
+		case "github":
+			providers["github"] = provider.NewGithub(
+				raw.RootURI,
+				providerInfo.ClientID,
+				providerInfo.ClientSecret,
+				strings.Split(providerInfo.Scopes[0], " "),
+			)
+		default:
+			log.Warnf("no provider info for key %s", key)
+		}
 	}
 
 	var publicKeyData []byte
-	publicKey := viper.GetString("jwt.publicKey")
-	if publicKey == "" {
-		publicKeyPath := viper.GetString("jwt.publicKeyPath")
-		if publicKeyPath == "" {
-			publicKeyPath = "certs/public.pem"
+	publicRSAKey := raw.JWT.PublicRSAKey
+	publicRSAKeyPath := raw.JWT.PublicRSAKeyPath
+	if publicRSAKey == "" {
+		if publicRSAKeyPath == "" {
+			publicRSAKeyPath = "certs/public.pem"
 		}
-		publicKeyData, err = ioutil.ReadFile(publicKeyPath)
+		publicKeyData, err = ioutil.ReadFile(publicRSAKeyPath)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		publicKeyData = []byte(publicKey)
+		publicKeyData = []byte(publicRSAKey)
 	}
 	block, _ := pem.Decode(publicKeyData)
 	if block == nil {
@@ -118,18 +132,18 @@ func Initialize(configFile string) (*app.Config, error) {
 	}
 
 	var privateKeyData []byte
-	privateKey := viper.GetString("jwt.privateKey")
-	if privateKey == "" {
-		privateKeyPath := viper.GetString("jwt.privateKeyPath")
-		if privateKeyPath == "" {
-			privateKeyPath = "certs/private.pem"
+	privateRSAKey := raw.JWT.PrivateRSAKey
+	privateRSAKeyPath := raw.JWT.PrivateRSAKeyPath
+	if privateRSAKey == "" {
+		if privateRSAKeyPath == "" {
+			privateRSAKeyPath = "certs/private.pem"
 		}
-		privateKeyData, err = ioutil.ReadFile(privateKeyPath)
+		privateKeyData, err = ioutil.ReadFile(privateRSAKeyPath)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		privateKeyData = []byte(privateKey)
+		privateKeyData = []byte(privateRSAKey)
 	}
 	block2, _ := pem.Decode(privateKeyData)
 	rsaPriv, err := x509.ParsePKCS1PrivateKey(block2.Bytes)
@@ -137,15 +151,24 @@ func Initialize(configFile string) (*app.Config, error) {
 		return nil, err
 	}
 
-	return &app.Config{RootURI: rootURI,
-		RedirectURI:   redirectURI,
-		WWWRootDir:    wwwRootDir,
+	return &Config{RootURI: raw.RootURI,
+		RedirectURI:   raw.RedirectURI,
+		WWWRootDir:    raw.WWWRootDir,
 		Providers:     providers,
-		SigningMethod: signingMethod,
+		SigningMethod: raw.JWT.SigningMethod,
 		PrivateRSAKey: rsaPriv,
 		PublicRSAKey:  rsaPub,
-		Audience:      audience,
-		Issuer:        issuer,
-		Subject:       subject,
-		ExpirySeconds: expiry}, nil
+		Audience:      raw.JWT.Audience,
+		Issuer:        raw.JWT.Issuer,
+		Subject:       raw.JWT.Subject,
+		ExpirySeconds: raw.JWT.ExpirySeconds}, nil
+}
+
+// String is a helping toString function for the config for debugging
+func (c *Config) String() string {
+	providersString := ""
+	for _, p := range c.Providers {
+		providersString = providersString + fmt.Sprintf("%s with clientId %s, ", p.Name(), p.ClientID())
+	}
+	return fmt.Sprintf("rootURI: %s, redirectURI: %s, Audience: %s, Issuer: %s, Subject: %s, Providers: %s", c.RootURI, c.RedirectURI, c.Audience, c.Issuer, c.Subject, providersString)
 }

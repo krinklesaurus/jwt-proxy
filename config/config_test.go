@@ -6,7 +6,7 @@ import (
 )
 
 func ExampleInitialize() {
-	configPath := "../resources/test/config.yml"
+	configPath := "../config-test.yml"
 
 	cfg, err := Initialize(configPath)
 	if err != nil {
@@ -16,7 +16,7 @@ func ExampleInitialize() {
 
 	fmt.Println(cfg.RootURI)
 	fmt.Println(cfg.RedirectURI)
-	fmt.Println(cfg.SigningMethod.Alg())
+	fmt.Println(cfg.SigningMethod)
 	fmt.Println(cfg.Audience)
 	fmt.Println(cfg.Issuer)
 	fmt.Println(cfg.Subject)
@@ -36,7 +36,7 @@ func ExampleInitialize() {
 }
 
 func ExampleInitialize_envvars() {
-	configPath := "../resources/test/config.yml"
+	configPath := "../config-test.yml"
 
 	os.Setenv("ROOTURI", "http://envvar:8080")
 	os.Setenv("REDIRECTURI", "http://envvar:8080/callback")
@@ -86,7 +86,7 @@ func ExampleInitialize_envvars() {
 
 	fmt.Println(cfg.RootURI)
 	fmt.Println(cfg.RedirectURI)
-	fmt.Println(cfg.SigningMethod.Alg())
+	fmt.Println(cfg.SigningMethod)
 	fmt.Println(cfg.Audience)
 	fmt.Println(cfg.Issuer)
 	fmt.Println(cfg.Subject)

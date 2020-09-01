@@ -5,10 +5,9 @@ import (
 
 	"github.com/SermoDigital/jose/crypto"
 	"github.com/SermoDigital/jose/jws"
-	"github.com/krinklesaurus/jwt-proxy"
 )
 
-func NewRSATokenizer(signingMethod crypto.SigningMethod, privKey *rsa.PrivateKey) app.Tokenizer {
+func NewRSATokenizer(signingMethod crypto.SigningMethod, privKey *rsa.PrivateKey) Tokenizer {
 	return &RSATokenizer{signingMethod: signingMethod, privKey: privKey}
 }
 

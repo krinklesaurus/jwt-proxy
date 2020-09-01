@@ -8,6 +8,6 @@ import (
 type PlainUserService struct {
 }
 
-func (us *PlainUserService) UniqueUser(provider string, providerUserID string) (string, error) {
+func (us PlainUserService) UniqueUser(provider string, providerUserID string) (string, error) {
 	return fmt.Sprintf("%s:%s", url.QueryEscape(provider), url.QueryEscape(providerUserID)), nil
 }
