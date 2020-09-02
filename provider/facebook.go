@@ -41,7 +41,7 @@ func (f *FacebookProvider) ClientID() string {
 }
 
 func (f *FacebookProvider) User() (string, error) {
-	url := fmt.Sprintf("https://graph.facebook.com/v2.7/me?access_token=%s", f.token.AccessToken)
+	url := fmt.Sprintf("https://graph.facebook.com/me?access_token=%s", f.token.AccessToken)
 
 	response, err := http.Get(url)
 	if err != nil {
