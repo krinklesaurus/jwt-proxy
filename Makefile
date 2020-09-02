@@ -11,8 +11,7 @@ clean:
 .PHONY: test
 test:
 	golint ./... &&\
-		go test -v -race -cover -coverprofile coverage.out ./... &&\
-		go tool cover -html=coverage.out -o coverage.html
+		go test -v -race -coverprofile=coverage.txt ./...
 
 .PHONY: run
 run:
