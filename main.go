@@ -12,7 +12,7 @@ import (
 	"github.com/krinklesaurus/jwt-proxy/user"
 	negronilogrus "github.com/meatballhat/negroni-logrus"
 	"github.com/sirupsen/logrus"
-	"github.com/urfave/negroni"
+	"github.com/urfave/negroni/v2"
 )
 
 func main() {
