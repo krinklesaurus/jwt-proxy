@@ -54,9 +54,9 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">github.com/krinklesaurus/jwt-proxy/config/config.go (68.4%)</option>
+				<option value="file0">github.com/krinklesaurus/jwt-proxy/config/config.go (65.8%)</option>
 				
-				<option value="file1">github.com/krinklesaurus/jwt-proxy/core/core.go (74.1%)</option>
+				<option value="file1">github.com/krinklesaurus/jwt-proxy/core/core.go (71.4%)</option>
 				
 				<option value="file2">github.com/krinklesaurus/jwt-proxy/core/rsatokenizer.go (100.0%)</option>
 				
@@ -106,30 +106,6 @@ import (
         "github.com/spf13/viper"
 )
 
-// Config is the struct for the config defined in a config.yml
-
-type configRaw struct {
-        RootURI     string `mapstructure:"rootUri"`
-        RedirectURI string `mapstructure:"redirectUri"`
-        WWWRootDir  string `mapstructure:"wwwRootDir"`
-        Providers   map[string]struct {
-                ClientID     string   `mapstructure:"clientId"`
-                ClientSecret string   `mapstructure:"clientSecret"`
-                Scopes       []string `mapstructure:"scopes"`
-        } `mapstructure:"providers"`
-        JWT struct {
-                PrivateRSAKey     string `mapstructure:"privateRSAKey"`
-                PublicRSAKey      string `mapstructure:"publicRSAKey"`
-                PrivateRSAKeyPath string `mapstructure:"privateRSAKeyPath"`
-                PublicRSAKeyPath  string `mapstructure:"publicRSAKeyPath"`
-                SigningMethod     string `mapstructure:"signingMethod"`
-                Audience          string `mapstructure:"audience"`
-                Issuer            string `mapstructure:"issuer"`
-                Subject           string `mapstructure:"subject"`
-                ExpirySeconds     int    `mapstructure:"expirySeconds"`
-        } `mapstructure:"jwt"`
-}
-
 type Config struct {
         RootURI           string
         RedirectURI       string
@@ -147,15 +123,45 @@ type Config struct {
         ExpirySeconds     int
 }
 
-func Initialize(configFile string) (*Config, error) <span class="cov4" title="2">{
-        if configFile != "" </span><span class="cov4" title="2">{
+func readString(key string, def string) (string, error) <span class="cov10" title="16">{
+        val := viper.GetString(key)
+        if val == "" </span><span class="cov0" title="0">{
+                if def != "" </span><span class="cov0" title="0">{
+                        return def, nil
+                }</span>
+                <span class="cov0" title="0">return "", fmt.Errorf("config %s must not be empty", key)</span>
+        }
+        <span class="cov10" title="16">return val, nil</span>
+}
+
+func readInt(key string, def int) (int, error) <span class="cov3" title="2">{
+        val := viper.GetInt(key)
+        if val == 0 </span><span class="cov3" title="2">{
+                if def != 0 </span><span class="cov3" title="2">{
+                        return def, nil
+                }</span>
+                <span class="cov0" title="0">return 0, fmt.Errorf("config %s must not 0", key)</span>
+        }
+        <span class="cov0" title="0">return val, nil</span>
+}
+
+func readSlice(key string) ([]string, error) <span class="cov0" title="0">{
+        val := viper.GetStringSlice(key)
+        if len(val) == 0 </span><span class="cov0" title="0">{
+                return []string{}, fmt.Errorf("config %s must not empty", key)
+        }</span>
+        <span class="cov0" title="0">return val, nil</span>
+}
+
+func Initialize(configFile string) (*Config, error) <span class="cov3" title="2">{
+        if configFile != "" </span><span class="cov3" title="2">{
                 viper.SetConfigFile(configFile)
         }</span> else<span class="cov0" title="0"> {
                 viper.SetConfigName("config")
                 viper.AddConfigPath(".")
         }</span>
 
-        <span class="cov4" title="2">viper.AutomaticEnv()
+        <span class="cov3" title="2">viper.AutomaticEnv()
         viper.SetConfigType("yaml")
         viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
@@ -164,97 +170,164 @@ func Initialize(configFile string) (*Config, error) <span class="cov4" title="2"
                 fmt.Println("could not read config file:", viper.ConfigFileUsed())
         }</span>
 
-        <span class="cov4" title="2">var raw configRaw
-        err = viper.Unmarshal(&amp;raw)
+        <span class="cov3" title="2">rootURI, err := readString("rootUri", "")
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
-        <span class="cov4" title="2">log.Debugf("loaded raw config: %+v", raw)
+        <span class="cov3" title="2">redirectURI, err := readString("redirectUri", "")
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov3" title="2">wwwRootDir, err := readString("wwwRootDir", "www")
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
 
-        providers := map[string]provider.Provider{}
-        for key, providerInfo := range raw.Providers </span><span class="cov10" title="6">{
-                switch key </span>{
-                case "google":<span class="cov4" title="2">
-                        providers["google"] = provider.NewGoogle(
-                                raw.RootURI,
-                                providerInfo.ClientID,
-                                providerInfo.ClientSecret,
-                                // bug in Viper/mapstructure forces us to split it manually again
-                                strings.Split(providerInfo.Scopes[0], " "),
-                        )</span>
-                case "facebook":<span class="cov4" title="2">
-                        providers["facebook"] = provider.NewFacebook(
-                                raw.RootURI,
-                                providerInfo.ClientID,
-                                providerInfo.ClientSecret,
-                                strings.Split(providerInfo.Scopes[0], " "),
-                        )</span>
-                case "github":<span class="cov4" title="2">
-                        providers["github"] = provider.NewGithub(
-                                raw.RootURI,
-                                providerInfo.ClientID,
-                                providerInfo.ClientSecret,
-                                strings.Split(providerInfo.Scopes[0], " "),
-                        )</span>
-                default:<span class="cov0" title="0">
-                        log.Warnf("no provider info for key %s", key)</span>
-                }
+        <span class="cov3" title="2">publicRSAKey := viper.GetString("jwt.publicRSAKey")
+        publicRSAKeyPath, err := readString("jwt.publicRSAKeyPath", "certs/public.pem")
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov3" title="2">privateRSAKey := viper.GetString("jwt.privateRSAKey")
+        privateRSAKeyPath, err := readString("jwt.privateRSAKeyPath", "certs/private.pem")
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov3" title="2">signingMethod := viper.GetString("jwt.signingMethod")
+
+        audience, err := readString("jwt.audience", "")
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov3" title="2">subject, err := readString("jwt.subject", "")
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov3" title="2">issuer, err := readString("jwt.issuer", "")
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov3" title="2">expirySeconds, err := readInt("jwt.expirySeconds", 86400)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov3" title="2">providers := map[string]provider.Provider{}
+
+        googleClientID := viper.GetString("providers.google.clientId")
+        if googleClientID != "" </span><span class="cov3" title="2">{
+                log.Debugf("found provider google")
+                googleSecret := viper.GetString("providers.google.clientSecret")
+                if googleSecret == "" </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("google secret must not be empty")
+                }</span>
+                <span class="cov3" title="2">googleScopes := viper.GetStringSlice("providers.google.scopes")
+                if len(googleScopes) == 0 </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("google scopes must not be empty")
+                }</span>
+                <span class="cov3" title="2">providers["google"] = provider.NewGoogle(
+                        rootURI,
+                        googleClientID,
+                        googleSecret,
+                        googleScopes,
+                )</span>
         }
 
-        <span class="cov4" title="2">var publicKeyData []byte
-        publicRSAKey := raw.JWT.PublicRSAKey
-        publicRSAKeyPath := raw.JWT.PublicRSAKeyPath
-        if publicRSAKey == "" </span><span class="cov4" title="2">{
+        <span class="cov3" title="2">githubClientID := viper.GetString("providers.github.clientId")
+        if githubClientID != "" </span><span class="cov3" title="2">{
+                log.Debugf("found provider github")
+                githubSecret := viper.GetString("providers.github.clientSecret")
+                if githubSecret == "" </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("github secret must not be empty")
+                }</span>
+                <span class="cov3" title="2">githubScopes := viper.GetStringSlice("providers.github.scopes")
+                if len(githubScopes) == 0 </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("github scopes must not be empty")
+                }</span>
+                <span class="cov3" title="2">providers["github"] = provider.NewGithub(
+                        rootURI,
+                        githubClientID,
+                        githubSecret,
+                        githubScopes,
+                )</span>
+        }
+
+        <span class="cov3" title="2">facebookClientID := viper.GetString("providers.facebook.clientId")
+        if facebookClientID != "" </span><span class="cov3" title="2">{
+                log.Debugf("found provider facebook")
+                facebookSecret := viper.GetString("providers.facebook.clientSecret")
+                if facebookSecret == "" </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("facebook secret must not be empty")
+                }</span>
+                <span class="cov3" title="2">facebookScopes := viper.GetStringSlice("providers.facebook.scopes")
+                if len(facebookScopes) == 0 </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("facebook scopes must not be empty")
+                }</span>
+                <span class="cov3" title="2">providers["facebook"] = provider.NewFacebook(
+                        rootURI,
+                        facebookClientID,
+                        viper.GetString("providers.facebook.clientSecret"),
+                        viper.GetStringSlice("providers.facebook.scopes"),
+                )</span>
+        }
+
+        <span class="cov3" title="2">if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov3" title="2">var publicKeyData []byte
+        if publicRSAKey == "" </span><span class="cov3" title="2">{
                 if publicRSAKeyPath == "" </span><span class="cov0" title="0">{
                         publicRSAKeyPath = "certs/public.pem"
                 }</span>
-                <span class="cov4" title="2">publicKeyData, err = ioutil.ReadFile(publicRSAKeyPath)
+                <span class="cov3" title="2">publicKeyData, err = ioutil.ReadFile(publicRSAKeyPath)
                 if err != nil </span><span class="cov0" title="0">{
                         return nil, err
                 }</span>
         } else<span class="cov0" title="0"> {
                 publicKeyData = []byte(publicRSAKey)
         }</span>
-        <span class="cov4" title="2">block, _ := pem.Decode(publicKeyData)
+        <span class="cov3" title="2">block, _ := pem.Decode(publicKeyData)
         if block == nil </span><span class="cov0" title="0">{
                 return nil, fmt.Errorf("could not decode publicKeyData %v", string(publicKeyData))
         }</span>
-        <span class="cov4" title="2">rsaPub, err := x509.ParsePKIXPublicKey(block.Bytes)
+        <span class="cov3" title="2">rsaPub, err := x509.ParsePKIXPublicKey(block.Bytes)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
 
-        <span class="cov4" title="2">var privateKeyData []byte
-        privateRSAKey := raw.JWT.PrivateRSAKey
-        privateRSAKeyPath := raw.JWT.PrivateRSAKeyPath
-        if privateRSAKey == "" </span><span class="cov4" title="2">{
+        <span class="cov3" title="2">var privateKeyData []byte
+        if privateRSAKey == "" </span><span class="cov3" title="2">{
                 if privateRSAKeyPath == "" </span><span class="cov0" title="0">{
                         privateRSAKeyPath = "certs/private.pem"
                 }</span>
-                <span class="cov4" title="2">privateKeyData, err = ioutil.ReadFile(privateRSAKeyPath)
+                <span class="cov3" title="2">privateKeyData, err = ioutil.ReadFile(privateRSAKeyPath)
                 if err != nil </span><span class="cov0" title="0">{
                         return nil, err
                 }</span>
         } else<span class="cov0" title="0"> {
                 privateKeyData = []byte(privateRSAKey)
         }</span>
-        <span class="cov4" title="2">block2, _ := pem.Decode(privateKeyData)
+        <span class="cov3" title="2">block2, _ := pem.Decode(privateKeyData)
         rsaPriv, err := x509.ParsePKCS1PrivateKey(block2.Bytes)
+
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
 
-        <span class="cov4" title="2">return &amp;Config{RootURI: raw.RootURI,
-                RedirectURI:   raw.RedirectURI,
-                WWWRootDir:    raw.WWWRootDir,
-                Providers:     providers,
-                SigningMethod: raw.JWT.SigningMethod,
-                PrivateRSAKey: rsaPriv,
-                PublicRSAKey:  rsaPub,
-                Audience:      raw.JWT.Audience,
-                Issuer:        raw.JWT.Issuer,
-                Subject:       raw.JWT.Subject,
-                ExpirySeconds: raw.JWT.ExpirySeconds}, nil</span>
+        <span class="cov3" title="2">return &amp;Config{RootURI: rootURI,
+                RedirectURI:       redirectURI,
+                WWWRootDir:        wwwRootDir,
+                Providers:         providers,
+                SigningMethod:     signingMethod,
+                PrivateRSAKey:     rsaPriv,
+                PrivateRSAKeyPath: privateRSAKeyPath,
+                PublicRSAKey:      rsaPub,
+                PublicRSAKeyPath:  publicRSAKeyPath,
+                Audience:          audience,
+                Issuer:            issuer,
+                Subject:           subject,
+                ExpirySeconds:     expirySeconds}, nil</span>
 }
 
 // String is a helping toString function for the config for debugging
@@ -263,7 +336,8 @@ func (c *Config) String() string <span class="cov0" title="0">{
         for _, p := range c.Providers </span><span class="cov0" title="0">{
                 providersString = providersString + fmt.Sprintf("%s with clientId %s, ", p.Name(), p.ClientID())
         }</span>
-        <span class="cov0" title="0">return fmt.Sprintf("rootURI: %s, redirectURI: %s, Audience: %s, Issuer: %s, Subject: %s, Providers: %s", c.RootURI, c.RedirectURI, c.Audience, c.Issuer, c.Subject, providersString)</span>
+        <span class="cov0" title="0">return fmt.Sprintf("rootURI: %s, redirectURI: %s, WWWRootDir: %s, SigningMethod: %s, PublicRSAKeyPath: %s, PrivateKeyPath: %s, Audience: %s, Issuer: %s, Subject: %s, Expiry: %d, Providers: %s",
+                c.RootURI, c.RedirectURI, c.WWWRootDir, c.SigningMethod, c.PublicRSAKeyPath, c.PrivateRSAKeyPath, c.Audience, c.Issuer, c.Subject, c.ExpirySeconds, providersString)</span>
 }
 </pre>
 		
@@ -272,6 +346,7 @@ func (c *Config) String() string <span class="cov0" title="0">{
 import (
         "crypto/x509"
         "encoding/pem"
+        "fmt"
         "time"
 
         "github.com/SermoDigital/jose/crypto"
@@ -304,7 +379,7 @@ type CoreAuth interface {
         Claims(token *TokenInfo) (jws.Claims, error)
         JwtToken(jws.Claims) ([]byte, error)
         RedirectURI() string
-        AuthURL(provider string, state string) string
+        AuthURL(provider string, state string) (string, error)
         Providers() []string
 }
 
@@ -352,7 +427,7 @@ func (c *Core) PublicKeys() ([]string, error) <span class="cov1" title="1">{
 
 func (c *Core) GenTokenInfo(providerID string, code string) (*TokenInfo, error) <span class="cov1" title="1">{
         provider := c.Config.Providers[providerID]
-        log.Debugf("getting access token from %s", provider.Name())
+        log.Debugf("getting access token from %s with code %s", provider.Name(), code)
         providerToken, err := provider.Exchange(oauth2.NoContext, code)
 
         if err != nil </span><span class="cov0" title="0">{
@@ -425,11 +500,14 @@ func (c *Core) Providers() []string <span class="cov0" title="0">{
         <span class="cov0" title="0">return keys</span>
 }
 
-func (c *Core) AuthURL(providerID string, state string) string <span class="cov0" title="0">{
+func (c *Core) AuthURL(providerID string, state string) (string, error) <span class="cov0" title="0">{
         provider := c.Config.Providers[providerID]
-        url := provider.AuthCodeURL(state)
-        return url
-}</span>
+        if provider == nil </span><span class="cov0" title="0">{
+                return "", fmt.Errorf("provider %s not found", providerID)
+        }</span>
+        <span class="cov0" title="0">url := provider.AuthCodeURL(state)
+        return url, nil</span>
+}
 </pre>
 		
 		<pre class="file" id="file2" style="display: none">package core

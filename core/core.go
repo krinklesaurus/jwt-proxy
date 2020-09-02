@@ -3,6 +3,7 @@ package core
 import (
 	"crypto/x509"
 	"encoding/pem"
+	"fmt"
 	"time"
 
 	"github.com/SermoDigital/jose/crypto"
@@ -35,7 +36,7 @@ type CoreAuth interface {
 	Claims(token *TokenInfo) (jws.Claims, error)
 	JwtToken(jws.Claims) ([]byte, error)
 	RedirectURI() string
-	AuthURL(provider string, state string) string
+	AuthURL(provider string, state string) (string, error)
 	Providers() []string
 }
 
@@ -83,7 +84,7 @@ func (c *Core) PublicKeys() ([]string, error) {
 
 func (c *Core) GenTokenInfo(providerID string, code string) (*TokenInfo, error) {
 	provider := c.Config.Providers[providerID]
-	log.Debugf("getting access token from %s", provider.Name())
+	log.Debugf("getting access token from %s with code %s", provider.Name(), code)
 	providerToken, err := provider.Exchange(oauth2.NoContext, code)
 
 	if err != nil {
@@ -156,8 +157,11 @@ func (c *Core) Providers() []string {
 	return keys
 }
 
-func (c *Core) AuthURL(providerID string, state string) string {
+func (c *Core) AuthURL(providerID string, state string) (string, error) {
 	provider := c.Config.Providers[providerID]
+	if provider == nil {
+		return "", fmt.Errorf("provider %s not found", providerID)
+	}
 	url := provider.AuthCodeURL(state)
-	return url
+	return url, nil
 }
