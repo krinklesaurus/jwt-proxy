@@ -10,7 +10,6 @@ import (
 	"github.com/krinklesaurus/jwt-proxy/handler"
 	"github.com/krinklesaurus/jwt-proxy/log"
 	"github.com/krinklesaurus/jwt-proxy/user"
-	negronilogrus "github.com/meatballhat/negroni-logrus"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/negroni/v2"
 )
@@ -57,7 +56,10 @@ func main() {
 	r.HandleFunc("/jwt-proxy/token", handler.VerifyToken).Methods("GET", "HEAD", "PUT", "POST")
 
 	n := negroni.New()
-	n.Use(negronilogrus.NewMiddleware())
+	n.Use(negroni.NewLogger())
+	recovery := negroni.NewRecovery()
+	recovery.Formatter = &negroni.HTMLPanicFormatter{}
+	n.Use(recovery)
 	n.UseHandler(r)
 
 	http.ListenAndServe(":8080", n)
