@@ -1,14 +1,18 @@
 # jwt-proxy
 
 <p align="center">
-    <img src="https://img.shields.io/docker/stars/krinklesaurus/jwt-proxy.svg"
-          alt="Docker Hub Stars">
+    <img src="https://img.shields.io/github/license/krinklesaurus/jwt-proxy"
+          alt="License">
+    <img src="https://img.shields.io/lgtm/alerts/github/krinklesaurus/jwt-proxy"
+          alt="LGTM alerts">
+    <img src="https://img.shields.io/travis/krinklesaurus/jwt-proxy.svg"
+          alt="Build status">
+    <img src="https://img.shields.io/docker/cloud/build/krinklesaurus/jwt-proxy.svg"
+          alt="Docker Hub Build status">
     <img src="https://img.shields.io/docker/pulls/krinklesaurus/jwt-proxy.svg"
           alt="Docker Hub Pulls version">
-    <img src="https://img.shields.io/docker/automated/krinklesaurus/jwt-proxy.svg"
-          alt="Docker Hub Automated">
-    <img src="https://img.shields.io/docker/build/krinklesaurus/jwt-proxy.svg"
-          alt="Docker Hub Build status">
+    <img src="https://img.shields.io/docker/stars/krinklesaurus/jwt-proxy.svg"
+          alt="Docker Hub Stars">
 </p>
 
 
