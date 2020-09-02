@@ -144,7 +144,7 @@ func (handler *Handler) ProviderLoginHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	authCodeURL := handler.core.AuthURL(provider, state)
-	log.Infof("redirecting to %s", authCodeURL)
+	log.Debugf("redirecting to %s", authCodeURL)
 	http.Redirect(w, r, authCodeURL, 302)
 }
 

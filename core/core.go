@@ -83,7 +83,7 @@ func (c *Core) PublicKeys() ([]string, error) {
 
 func (c *Core) GenTokenInfo(providerID string, code string) (*TokenInfo, error) {
 	provider := c.Config.Providers[providerID]
-	log.Debugf("getting access token from %s", provider.Name())
+	log.Debugf("getting access token from %s with code %s", provider.Name(), code)
 	providerToken, err := provider.Exchange(oauth2.NoContext, code)
 
 	if err != nil {
