@@ -6,7 +6,7 @@ import (
 )
 
 func ExampleInitialize() {
-	configPath := "../config-test.yml"
+	configPath := "../test/config-test.yml"
 
 	cfg, err := Initialize(configPath)
 	if err != nil {
@@ -36,7 +36,7 @@ func ExampleInitialize() {
 }
 
 func ExampleInitialize_envvars() {
-	configPath := "../config-test.yml"
+	configPath := "../test/config-test.yml"
 
 	os.Setenv("ROOTURI", "http://envvar:8080")
 	os.Setenv("REDIRECTURI", "http://envvar:8080/callback")

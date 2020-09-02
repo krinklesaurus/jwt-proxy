@@ -46,7 +46,7 @@ type mockUserservice struct {
 }
 
 func TestPublicKey(t *testing.T) {
-	conf, _ := config.Initialize("../config-test.yml")
+	conf, _ := config.Initialize("../test/config-test.yml")
 	core := New(conf, nil, nil)
 	publicKeys, _ := core.PublicKeys()
 
@@ -60,7 +60,7 @@ func TestPublicKey(t *testing.T) {
 }
 
 func TestJwtToken(t *testing.T) {
-	conf, _ := config.Initialize("../config-test.yml")
+	conf, _ := config.Initialize("../test/config-test.yml")
 	userID := uuid.NewV4().String()
 	conf.Providers["mock_provider"] = mockProvider{userId: userID}
 
