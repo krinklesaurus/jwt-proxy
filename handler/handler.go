@@ -143,7 +143,11 @@ func (handler *Handler) ProviderLoginHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	authCodeURL := handler.core.AuthURL(provider, state)
+	authCodeURL, err := handler.core.AuthURL(provider, state)
+	if err != nil {
+		log.Errorf("error getting auth url, %v", err)
+		http.Error(w, "That's not the provider you're looking for", http.StatusBadRequest)
+	}
 	log.Debugf("redirecting to %s", authCodeURL)
 	http.Redirect(w, r, authCodeURL, 302)
 }

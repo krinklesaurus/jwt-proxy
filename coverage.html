@@ -56,7 +56,7 @@
 				
 				<option value="file0">github.com/krinklesaurus/jwt-proxy/config/config.go (65.8%)</option>
 				
-				<option value="file1">github.com/krinklesaurus/jwt-proxy/core/core.go (74.1%)</option>
+				<option value="file1">github.com/krinklesaurus/jwt-proxy/core/core.go (71.4%)</option>
 				
 				<option value="file2">github.com/krinklesaurus/jwt-proxy/core/rsatokenizer.go (100.0%)</option>
 				
@@ -346,6 +346,7 @@ func (c *Config) String() string <span class="cov0" title="0">{
 import (
         "crypto/x509"
         "encoding/pem"
+        "fmt"
         "time"
 
         "github.com/SermoDigital/jose/crypto"
@@ -378,7 +379,7 @@ type CoreAuth interface {
         Claims(token *TokenInfo) (jws.Claims, error)
         JwtToken(jws.Claims) ([]byte, error)
         RedirectURI() string
-        AuthURL(provider string, state string) string
+        AuthURL(provider string, state string) (string, error)
         Providers() []string
 }
 
@@ -499,11 +500,14 @@ func (c *Core) Providers() []string <span class="cov0" title="0">{
         <span class="cov0" title="0">return keys</span>
 }
 
-func (c *Core) AuthURL(providerID string, state string) string <span class="cov0" title="0">{
+func (c *Core) AuthURL(providerID string, state string) (string, error) <span class="cov0" title="0">{
         provider := c.Config.Providers[providerID]
-        url := provider.AuthCodeURL(state)
-        return url
-}</span>
+        if provider == nil </span><span class="cov0" title="0">{
+                return "", fmt.Errorf("provider %s not found", providerID)
+        }</span>
+        <span class="cov0" title="0">url := provider.AuthCodeURL(state)
+        return url, nil</span>
+}
 </pre>
 		
 		<pre class="file" id="file2" style="display: none">package core
