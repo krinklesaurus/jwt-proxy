@@ -2,7 +2,7 @@
 # STEP 1 build executable binary
 ############################
 # golang alpine 1.14.4
-FROM golang:1.15.1-alpine3.12 as builder
+FROM golang:1.15.7-alpine3.12 as builder
 
 # Install git + SSL ca certificates.
 # Git is required for fetching the dependencies.
@@ -36,7 +36,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o jwt-proxy .
 ############################
 # STEP 2 build a small image
 ############################
-FROM alpine:3.12
+FROM alpine:3.13
 
 # Import from builder.
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
