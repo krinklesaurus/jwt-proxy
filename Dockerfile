@@ -38,6 +38,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o jwt-proxy .
 ############################
 FROM alpine:3.13
 
+RUN apk upgrade --update-cache
+
 # Import from builder.
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
