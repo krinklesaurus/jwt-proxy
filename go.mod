@@ -17,6 +17,6 @@ require (
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
 	golang.org/x/exp v0.0.0-20200224162631-6cc2880d07d6 // indirect
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
-	golang.org/x/oauth2 v0.0.0-20210126194326-f9ce19ea3013
+	golang.org/x/oauth2 v0.0.0-20210201163806-010130855d6c
 	google.golang.org/protobuf v1.25.0 // indirect
 )
