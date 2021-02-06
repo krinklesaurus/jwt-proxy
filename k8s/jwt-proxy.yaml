@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: jwt-proxy
+  name: jwt-proxy
+  namespace: jwt-proxy
+spec:
+  ports:
+  - name: "8080"
+    port: 8080
+    targetPort: 8080
+  selector:
+    app: jwt-proxy
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: jwt-proxy
+  name: jwt-proxy
+  namespace: jwt-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jwt-proxy
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: jwt-proxy
+    spec:
+      containers:
+      - name: jwt-proxy
+        image: krinklesaurus/jwt-proxy:v1.0.2
+        imagePullPolicy: IfNotPresent
+        resources: {}
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ROOTURI
+          value: "https://jwt-proxy.krinklesaurus.me"
+        - name: REDIRECTURI
+          value: "http://localhost:8080/callback"
+        - name: PROVIDERS_GITHUB_CLIENTID
+          value: "$PROVIDERS_GITHUB_CLIENTID"
+        - name: PROVIDERS_GITHUB_CLIENTSECRET
+          value: "$PROVIDERS_GITHUB_CLIENTSECRET"
+        - name: PROVIDERS_GITHUB_SCOPES
+          value: "$PROVIDERS_GITHUB_SCOPES"
+        volumeMounts:
+          - mountPath: "/jwt-proxy/certs"
+            name: jwt-proxy-certs
+            readOnly: true
+        securityContext:
+          runAsUser: 1000
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes:
+        - name: jwt-proxy-certs
+          secret:
+            secretName: jwt-proxy-certs
+status: {}

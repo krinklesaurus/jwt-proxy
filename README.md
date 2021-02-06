@@ -65,6 +65,10 @@ This figure illustrates the basic flow jwt-proxy provides:
   2. have a unique user id you can work with
   3. could make additional calls to the OAuth2 provider with the provider's access token in the JWT token
 
+## Demo
+
+A demo can be found here: https://jwt-proxy.krinklesaurus.me. It supports Github as the only OAuth provider. Upon successful login, you will be redirected to http://localhost:8080/callback and find the Access token created by jwt-proxy as query parameter `token` in the URL. This URL can be replaced with a different URL like `10.0.2.2` for Android phones.
+
  ## How can I test/lint/build jwt-proxy?
 
  jwt-proxy comes with a Makefile that defines target for clean, test, lint, build and dockerbuild.

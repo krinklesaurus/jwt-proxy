@@ -1,0 +1,41 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: jwt-proxy-ingress
+  namespace: jwt-proxy
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    ingress.kubernetes.io/query-routing: default/query-routing
+    cert-manager.io/cluster-issuer: "letsencrypt-issuer"
+    nginx.ingress.kubernetes.io/auth-url: "https://$host/jwt-proxy/token"
+    nginx.ingress.kubernetes.io/auth-signin: "https://$host/jwt-proxy/login"
+spec:
+  tls:
+  - hosts:
+    - jwt-proxy.krinklesaurus.me
+    secretName: jwt-proxy-krinklesaurus-cert-tls
+  rules:
+  - host: jwt-proxy.krinklesaurus.me
+    http: &http_rules
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          serviceName: helloservice
+          servicePort: 8080
+  - http: *http_rules
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: jwt-proxy
+  namespace: jwt-proxy
+spec:
+  rules:
+  - host: jwt-proxy.krinklesaurus.me
+    http:
+      paths:
+      - path: /jwt-proxy
+        backend:
+          serviceName: jwt-proxy
+          servicePort: 8080
