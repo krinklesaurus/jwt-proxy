@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: helloservice
+  name: helloservice
+  namespace: jwt-proxy
+spec:
+  ports:
+  - name: "8080"
+    port: 8080
+    targetPort: 8080
+  selector:
+    app: helloservice
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: helloservice
+  name: helloservice
+  namespace: jwt-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: helloservice
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: helloservice
+    spec:
+      containers:
+      - name: helloservice
+        image: krinklesaurus/helloservice:v1.0.0
+        imagePullPolicy: IfNotPresent
+        resources: {}
+        ports:
+        - containerPort: 8080
+      restartPolicy: Always
+      serviceAccountName: ""
+status: {}

@@ -33,3 +33,6 @@ jwt-proxy
 real-config.yml
 cover.*
 __debug_bin
+.credentials
+.jwt-proxy.yaml
+.secrets.yaml
