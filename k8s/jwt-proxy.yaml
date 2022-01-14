@@ -35,7 +35,7 @@ spec:
     spec:
       containers:
       - name: jwt-proxy
-        image: krinklesaurus/jwt-proxy:v1.0.2
+        image: krinklesaurus/jwt-proxy:7503f5f
         imagePullPolicy: IfNotPresent
         resources: {}
         ports:

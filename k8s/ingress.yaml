@@ -1,4 +1,4 @@
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: jwt-proxy-ingress
@@ -21,11 +21,13 @@ spec:
       - path: /
         pathType: Prefix
         backend:
-          serviceName: helloservice
-          servicePort: 8080
+          service:
+            name: helloservice
+            port:
+              number: 8080
   - http: *http_rules
 ---
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: jwt-proxy
@@ -36,6 +38,9 @@ spec:
     http:
       paths:
       - path: /jwt-proxy
+        pathType: Prefix
         backend:
-          serviceName: jwt-proxy
-          servicePort: 8080
+          service:
+            name: jwt-proxy
+            port:
+              number: 8080
