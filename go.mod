@@ -9,14 +9,13 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/sessions v1.2.1
 	github.com/satori/go.uuid v1.2.0
-	github.com/sirupsen/logrus v1.7.0
-	github.com/spf13/viper v1.7.1
+	github.com/sirupsen/logrus v1.8.1
+	github.com/spf13/viper v1.9.0
 	github.com/stretchr/objx v0.1.1 // indirect
 	github.com/stretchr/testify v1.7.0
 	github.com/urfave/negroni/v2 v2.0.2
-	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
+	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
 	golang.org/x/exp v0.0.0-20200224162631-6cc2880d07d6 // indirect
-	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
-	golang.org/x/oauth2 v0.0.0-20210201163806-010130855d6c
-	google.golang.org/protobuf v1.25.0 // indirect
+	golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f
+	golang.org/x/oauth2 v0.0.0-20211005180243-6b3c2da341f1
 )
